@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">HW2</string>
+    <string name="back">Back</string>
+    <string name="pgRating">13+</string>
+    <string name="title">Avengers:\nEnd Game</string>
+    <string name="tagLine">Action, Adventure, Fantasy</string>
+    <string name="reviews">Reviews</string>
+    <string name="storylineHeader">Storyline</string>
+    <string name="storylineDescription">After the devastating events of Avengers: Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more in order to reverse Thanos\' actions and restore balance to the universe.</string>
+    <string name="cast">Cast</string>
+    <string name="cast1">Robert Downey Jr.</string>
+    <string name="cast2">Chris Evans</string>
+    <string name="cast3">Mark Ruffalo</string>
+    <string name="cast4">Chris Hemsworth</string>
+</resources>
