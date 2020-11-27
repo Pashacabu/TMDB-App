@@ -19,8 +19,10 @@ class MainActivity : AppCompatActivity(), MoviesList.MovieClickListener, MovieDe
         fragmentContainer=findViewById(R.id.fragment_container)
         if (savedInstanceState==null){
             supportFragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, fragmentMoviesList, "MovieDetails")
+                    .add(R.id.fragment_container, fragmentMoviesList, "MoviesList")
                     .commit()
+        } else {
+            fragmentMoviesList=supportFragmentManager.findFragmentByTag("MoviesList") as MoviesList
         }
     }
 

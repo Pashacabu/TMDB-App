@@ -1,7 +1,6 @@
 package com.pashcabu.hw2
 
 import android.content.Context
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,7 +16,9 @@ class MoviesList : Fragment() {
     private var isLiked:Boolean=false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.movies_list_fragment, container,false)
+        val view = inflater.inflate(R.layout.movies_list_fragment, container,false)
+        isLiked = savedInstanceState?.getBoolean("isLiked") ?: false
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -28,7 +29,11 @@ class MoviesList : Fragment() {
         like=view.findViewById<ImageView?>(R.id.like).apply {
             setOnClickListener { addToFavorite() }
         }
-
+        if (isLiked){
+            like?.setImageResource(R.drawable.like_selected)
+        } else{
+            like?.setImageResource(R.drawable.like)
+        }
 
     }
 
@@ -42,6 +47,7 @@ class MoviesList : Fragment() {
     override fun onDetach() {
         super.onDetach()
         movieClickListener=null
+
     }
 
     private fun addToFavorite(){
@@ -60,6 +66,15 @@ class MoviesList : Fragment() {
         fun openMovieDetails()
 
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("isLiked", isLiked)
+    }
+
+
+
+
 }
 
 
