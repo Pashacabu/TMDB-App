@@ -17,7 +17,7 @@ class MoviesList : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.movies_list_fragment, container,false)
-        isLiked = savedInstanceState?.getBoolean("isLiked") ?: false
+        isLiked = savedInstanceState?.getBoolean(IS_LIKED) ?: false
         return view
     }
 
@@ -69,10 +69,12 @@ class MoviesList : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean("isLiked", isLiked)
+        outState.putBoolean(IS_LIKED, isLiked)
     }
 
-
+    companion object {
+        private const val IS_LIKED = "isLiked"
+    }
 
 
 }
