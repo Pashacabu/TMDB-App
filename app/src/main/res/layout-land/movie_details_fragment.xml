@@ -13,16 +13,17 @@
 
         <ImageView
             android:id="@+id/mainPoster"
-            android:layout_width="530dp"
+            android:layout_width="match_parent"
+            android:scaleType="centerCrop"
+            android:paddingTop="80dp"
             android:layout_height="298dp"
             android:src="@drawable/background"
-            android:translationX="-25dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/mainPosterMask"
-            android:layout_width="530dp"
+            android:layout_width="match_parent"
             android:layout_height="298dp"
             android:scaleType="fitXY"
             android:src="@drawable/mask"
@@ -173,14 +174,6 @@
             android:layout_marginTop="7dp"
             android:paddingStart="0dp"
             android:paddingEnd="0dp"/>
-
-
-
-
-
-
-
-
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/paddingLeft"

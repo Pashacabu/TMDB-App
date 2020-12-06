@@ -7,9 +7,11 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.activity.OnBackPressedCallback
+import com.pashcabu.hw2.moviesListRecyclerView.Movie
 
-class MainActivity : AppCompatActivity(), MoviesList.MovieClickListener, MovieDetails.MovieDetailsClickListener{
-    var fragmentMovieDetails=MovieDetails()
+
+class MainActivity : AppCompatActivity(), /*MoviesList.MovieClickListener,*/ MovieDetails.MovieDetailsClickListener /*MovieSelectedClickListener*/{
+//    var fragmentMovieDetails=MovieDetails()
     var fragmentMoviesList = MoviesList()
 
 
@@ -25,18 +27,47 @@ class MainActivity : AppCompatActivity(), MoviesList.MovieClickListener, MovieDe
         }
     }
 
-    override fun openMovieDetails() {
+//    override fun openMovieDetails() {
+//        supportFragmentManager.beginTransaction()
+//                .add(R.id.fragment_container, fragmentMovieDetails, DETAILS_FRAGMENT_TAG)
+//                .addToBackStack(DETAILS_FRAGMENT_TAG)
+//                .commit()
+//    }
+//    fun openDetails(movie : Movie){
+//        supportFragmentManager.beginTransaction()
+//                .add(R.id.fragment_container, fragmentMovieDetails, DETAILS_FRAGMENT_TAG)
+//                .addToBackStack(DETAILS_FRAGMENT_TAG)
+//                .commit()
+//    }
+
+//    override fun onBackArrowPressed() {
+//        super.onBackPressed()
+//    }
+    companion object {
+        private const val LIST_FRAGMENT_TAG = "MoviesList"
+        private const val DETAILS_FRAGMENT_TAG = "MovieDetails"
+    }
+
+    fun openMovie(title :String) {
         supportFragmentManager.beginTransaction()
-                .add(R.id.fragment_container, fragmentMovieDetails, DETAILS_FRAGMENT_TAG)
-                .addToBackStack(DETAILS_FRAGMENT_TAG)
+                .add(R.id.fragment_container, MovieDetails.newInstance(title))
+                .addToBackStack(title)
                 .commit()
     }
 
     override fun onBackArrowPressed() {
         super.onBackPressed()
     }
-    companion object {
-        private const val LIST_FRAGMENT_TAG = "MoviesList"
-        private const val DETAILS_FRAGMENT_TAG = "MovieDetails"
-    }
+
+//    override fun onMovieSelected(movie: Movie) {
+//        supportFragmentManager.beginTransaction()
+//                .add(R.id.fragment_container, MovieDetails())
+//    }
+
+//    override fun onMovieSelected(movie: Movie) {
+//        supportFragmentManager.beginTransaction()
+//                .add(R.id.fragment_container, MovieDetails(movie), movie.title)
+//                .addToBackStack(movie.title)
+//                .commit()
+//    }
 }
