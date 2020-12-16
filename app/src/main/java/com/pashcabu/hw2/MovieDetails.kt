@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.text.Layout
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,23 +40,29 @@ class MovieDetails : Fragment() {
         }
     }
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener )
+    private var movieTitle = 0
+    private var movie:Movie = MoviesData().getMovies()[0]
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        movieTitle = arguments?.getInt(TITLE) as Int
+        movie = MoviesData().findMovieByTitle(movieTitle)
         return inflater.inflate(R.layout.movie_details_fragment,container,false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val movie:Movie = MoviesData().findMovieByName(arguments?.getString(TITLE))
+//        Toast.makeText(context, context?.getString(movieTitle), Toast.LENGTH_SHORT)
+
 //        Toast.makeText(context, movie.title, Toast.LENGTH_SHORT).show()
         val poster : ImageView = view.findViewById(R.id.mainPoster)
         poster.setImageResource(movie.bigPoster)
         val pgRating:TextView = view.findViewById(R.id.pgRating)
-        pgRating.text=movie.pgRating
+        pgRating.text=context?.getString(movie.pgRating)
         val title : TextView = view.findViewById(R.id.movie_title)
-        title.text= movie.title
+        title.text= context?.getString(movie.title)
         val tags : TextView = view.findViewById(R.id.tag_line)
-        tags.text = movie.tags
+        tags.text = context?.getString(movie.tags)
         val rating : RatingBar = view.findViewById(R.id.rating)
         rating.rating = movie.rating.toFloat()
         val reviews : TextView = view.findViewById(R.id.reviews)
@@ -76,7 +83,8 @@ class MovieDetails : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        adapter.loadActorsData(arguments?.getString("title"))
+        adapter.loadActorsData(movie.cast)
+
     }
 
     override fun onAttach(context: Context) {
@@ -97,14 +105,13 @@ class MovieDetails : Fragment() {
     }
 
     companion object {
-        fun newInstance (title:String): MovieDetails{
+        fun newInstance (title:Int): MovieDetails{
             val arg = Bundle()
-            arg.putString(TITLE, title)
+            arg.putInt(TITLE, title)
             val fragment = MovieDetails()
             fragment.arguments = arg
             return fragment
         }
-        var toast :Toast?=null
-        const val TITLE = "title"
+        const val TITLE = "movieTitle"
     }
 }

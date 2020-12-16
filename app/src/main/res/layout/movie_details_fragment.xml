@@ -13,8 +13,8 @@
 
         <ImageView
             android:id="@+id/mainPoster"
-            android:layout_width="530dp"
-            android:layout_height="298dp"
+            android:layout_width="@dimen/main_poster_width"
+            android:layout_height="@dimen/main_poster_height"
             android:src="@drawable/background"
             android:translationX="-25dp"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -22,8 +22,8 @@
 
         <ImageView
             android:id="@+id/mainPosterMask"
-            android:layout_width="530dp"
-            android:layout_height="298dp"
+            android:layout_width="@dimen/main_poster_width"
+            android:layout_height="@dimen/main_poster_height"
             android:scaleType="fitXY"
             android:src="@drawable/mask"
             app:layout_constraintEnd_toEndOf="parent"
@@ -49,7 +49,7 @@
             android:alpha="0.5"
             android:text="@string/back"
             android:textColor="@color/white"
-            android:textSize="12sp"
+            android:textSize="@dimen/movie_details_back_button"
             app:layout_constraintLeft_toRightOf="@id/backArrow"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -69,7 +69,7 @@
             android:layout_marginBottom="8dp"
             android:text="@string/pgRating"
             android:textColor="@color/white"
-            android:textSize="12sp"
+            android:textSize="12dp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/movie_title"
             app:layout_constraintLeft_toRightOf="@id/paddingLeft" />
@@ -81,7 +81,7 @@
             android:layout_marginTop="254dp"
             android:text="@string/title"
             android:textColor="@color/not_so_white"
-            android:textSize="40sp"
+            android:textSize="@dimen/movie_details_title"
             android:textStyle="bold"
             app:layout_constraintLeft_toRightOf="@id/paddingLeft"
             app:layout_constraintRight_toLeftOf="@id/paddingRight"
@@ -94,7 +94,7 @@
             android:layout_marginTop="4dp"
             android:text="@string/tagLine"
             android:textColor="@color/pink_ish"
-            android:textSize="14sp"
+            android:textSize="@dimen/movie_details_tags"
             app:layout_constraintLeft_toRightOf="@id/paddingLeft"
             app:layout_constraintRight_toLeftOf="@id/paddingRight"
             app:layout_constraintTop_toBottomOf="@id/movie_title" />
@@ -122,7 +122,7 @@
             android:layout_marginTop="4dp"
             android:text="@string/reviews"
             android:textColor="@color/gray_ish"
-            android:textSize="14sp"
+            android:textSize="@dimen/movie_details_reviews"
             android:textStyle="bold"
             app:layout_constraintLeft_toRightOf="@id/rating"
             app:layout_constraintTop_toBottomOf="@id/tag_line" />
@@ -133,6 +133,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/storylineHeader"
+            android:textSize="@dimen/movie_details_storyline_header"
             android:textColor="@color/white"
             android:textStyle="bold"
             app:layout_constraintLeft_toRightOf="@id/paddingLeft"
@@ -147,6 +148,7 @@
             android:alpha="0.75"
             android:gravity="center_vertical"
             android:lineSpacingExtra="4sp"
+            android:textSize="@dimen/movie_details_storyline"
             android:text="@string/storylineDescription"
             android:textColor="@color/white"
             app:layout_constraintLeft_toRightOf="@id/paddingLeft"
@@ -160,6 +162,7 @@
             android:layout_marginTop="24dp"
             android:lineSpacingExtra="8sp"
             android:text="@string/cast"
+            android:textSize="@dimen/movie_details_cast_header"
             android:textColor="@color/white"
             app:layout_constraintLeft_toRightOf="@id/paddingLeft"
             app:layout_constraintTop_toBottomOf="@id/storylineDescription" />

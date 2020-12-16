@@ -1,5 +1,6 @@
 package com.pashcabu.hw2
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -10,8 +11,8 @@ import androidx.activity.OnBackPressedCallback
 import com.pashcabu.hw2.moviesListRecyclerView.Movie
 
 
-class MainActivity : AppCompatActivity(), /*MoviesList.MovieClickListener,*/ MovieDetails.MovieDetailsClickListener /*MovieSelectedClickListener*/{
-//    var fragmentMovieDetails=MovieDetails()
+class MainActivity : AppCompatActivity(), MovieDetails.MovieDetailsClickListener{
+
     var fragmentMoviesList = MoviesList()
 
 
@@ -27,47 +28,15 @@ class MainActivity : AppCompatActivity(), /*MoviesList.MovieClickListener,*/ Mov
         }
     }
 
-//    override fun openMovieDetails() {
-//        supportFragmentManager.beginTransaction()
-//                .add(R.id.fragment_container, fragmentMovieDetails, DETAILS_FRAGMENT_TAG)
-//                .addToBackStack(DETAILS_FRAGMENT_TAG)
-//                .commit()
-//    }
-//    fun openDetails(movie : Movie){
-//        supportFragmentManager.beginTransaction()
-//                .add(R.id.fragment_container, fragmentMovieDetails, DETAILS_FRAGMENT_TAG)
-//                .addToBackStack(DETAILS_FRAGMENT_TAG)
-//                .commit()
-//    }
-
-//    override fun onBackArrowPressed() {
-//        super.onBackPressed()
-//    }
     companion object {
         private const val LIST_FRAGMENT_TAG = "MoviesList"
-        private const val DETAILS_FRAGMENT_TAG = "MovieDetails"
     }
 
-    fun openMovie(title :String) {
-        supportFragmentManager.beginTransaction()
-                .add(R.id.fragment_container, MovieDetails.newInstance(title))
-                .addToBackStack(title)
-                .commit()
-    }
+
 
     override fun onBackArrowPressed() {
         super.onBackPressed()
     }
 
-//    override fun onMovieSelected(movie: Movie) {
-//        supportFragmentManager.beginTransaction()
-//                .add(R.id.fragment_container, MovieDetails())
-//    }
 
-//    override fun onMovieSelected(movie: Movie) {
-//        supportFragmentManager.beginTransaction()
-//                .add(R.id.fragment_container, MovieDetails(movie), movie.title)
-//                .addToBackStack(movie.title)
-//                .commit()
-//    }
 }

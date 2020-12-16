@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="170dp"
-    android:layout_height="296dp"
+    android:layout_width="@dimen/movie_card_width"
+    android:layout_height="@dimen/movie_card_height"
     android:id="@+id/movie_card_container"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <ImageView
@@ -14,8 +14,8 @@
         android:layout_marginTop="0dp"/>
     <androidx.cardview.widget.CardView
         android:id="@+id/poster"
-        android:layout_width="166dp"
-        android:layout_height="246dp"
+        android:layout_width="@dimen/poster_width"
+        android:layout_height="0dp"
         app:layout_constraintDimensionRatio="0.67"
         app:cardCornerRadius="6dp"
         app:layout_constraintStart_toStartOf="@id/movie"
@@ -74,7 +74,7 @@
         android:layout_marginTop="4dp"
         android:text="@string/tagLine"
         android:textColor="@color/pink_ish"
-        android:textSize="8sp"
+        android:textSize="@dimen/movies_list_item_tags"
         app:layout_constraintLeft_toLeftOf="@id/poster"
         app:layout_constraintBottom_toBottomOf="@id/poster"
         android:layout_marginBottom="22dp"
@@ -107,7 +107,7 @@
         android:layout_marginStart="60dp"
         android:text="@string/reviews"
         android:textColor="@color/gray_ish"
-        android:textSize="8sp"
+        android:textSize="@dimen/movies_list_item_reviews_count"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@id/movie"
         app:layout_constraintTop_toBottomOf="@id/tag_line"
@@ -120,7 +120,7 @@
         android:text="@string/title_in_one_line"
         android:textColor="@color/not_so_white"
         android:textStyle="bold"
-        android:textSize="14sp"
+        android:textSize="@dimen/movies_list_item_title"
         app:layout_constraintTop_toBottomOf="@id/poster"
         app:layout_constraintStart_toStartOf="@id/movie"
         android:layout_margin="8dp"/>
@@ -133,7 +133,7 @@
         android:text="@string/length"
         android:textStyle="bold"
         android:textColor="@color/length_color"
-        android:textSize="8sp"
+        android:textSize="@dimen/movies_list_item_length"
         android:lineHeight="12sp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

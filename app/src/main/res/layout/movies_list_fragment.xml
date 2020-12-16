@@ -39,7 +39,8 @@
         app:layout_constraintStart_toEndOf="@id/locationImage"
         android:text="@string/moviesList"
         android:textColor="@color/white"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        android:textSize="@dimen/movies_list_header_text"/>
 
 
     <androidx.recyclerview.widget.RecyclerView

@@ -1,4 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="main_left_padding">16dp</dimen>
+    <dimen name="main_poster_width">530dp</dimen>
+    <dimen name="main_poster_height">298dp</dimen>
+    <dimen name="movie_card_width">170dp</dimen>
+    <dimen name="movie_card_height">296dp</dimen>
+    <dimen name="poster_width">166dp</dimen>
+
+    <dimen name="movies_list_header_text">14sp</dimen>
+    <dimen name="movies_list_item_tags">8sp</dimen>
+    <dimen name="movies_list_item_reviews_count">8sp</dimen>
+    <dimen name="movies_list_item_title">14sp</dimen>
+    <dimen name="movies_list_item_length">8sp</dimen>
+    <dimen name="movie_details_back_button">12sp</dimen>
+    <dimen name="movie_details_title">40sp</dimen>
+    <dimen name="movie_details_tags">14sp</dimen>
+    <dimen name="movie_details_reviews">14sp</dimen>
+    <dimen name="movie_details_storyline_header">14sp</dimen>
+    <dimen name="movie_details_storyline">14sp</dimen>
+    <dimen name="movie_details_cast_header">14sp</dimen>
+    <dimen name="movie_details_actor">12sp</dimen>
+
+    <dimen name="cast_recycler_item_image_height">80dp</dimen>
+
 </resources>

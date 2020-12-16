@@ -20,6 +20,32 @@
     <string name="reviews2">%d Reviews</string>
     <string name="duration">%d MIN</string>
 
+    <!--Movies titles-->
+    <string name="avengers">Avengers: End Game</string>
+    <string name="tenet">Tenet</string>
+    <string name="black_widow">Black Widow</string>
+    <string name="wonder_woman_1984">Wonder Woman 1984</string>
+
+    <!-- PG Ratings-->
+    <string name="pg13">13+</string>
+    <string name="pg16">16+</string>
+
+    <!--Tags-->
+    <string name="tag_action">Action</string>
+    <string name="tag_adventure">Adventure</string>
+    <string name="tag_drama">Drama</string>
+    <string name="tag_sci_fi">Sci-Fi</string>
+    <string name="tag_thriller">Thriller</string>
+    <string name="tag_fantasy">Fantasy</string>
+    <string name="tag_none">No tags to show</string>
+    <string name="tags_avengers">Action, Adventure, Drama</string>
+    <string name="tags_tenet">Action, Sci-Fi, Thriller</string>
+    <string name="tags_black_widow">Action, Adventure, Sci-Fi</string>
+    <string name="tags_wonder_woman">Action, Adventure, Fantasy</string>
+
+
+
+
     <!--Storylines-->
     <string name="avengers_storyline">After the devastating events of Avengers: Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more in order to reverse Thanos\' actions and restore balance to the universe.</string>
     <string name="tenet_storyline">A secret agent embarks on a dangerous, time-bending mission to prevent the start of World War III.</string>

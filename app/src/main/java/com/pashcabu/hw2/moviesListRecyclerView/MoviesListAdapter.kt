@@ -2,6 +2,7 @@ package com.pashcabu.hw2.moviesListRecyclerView
 
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +10,7 @@ import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.pashcabu.hw2.MoviesList
 import com.pashcabu.hw2.R
@@ -40,10 +42,10 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
         private val context: Context = view.context
 
         fun onBindMovieData(movie: Movie) {
-            title.text = movie.title
-            pgRating.text = movie.pgRating
+            title.text = context.resources.getString(movie.title)
+            pgRating.text = context.resources.getString(movie.pgRating)
             rating.rating = movie.rating.toFloat()
-            tagLine.text = movie.tags
+            tagLine.text = context.resources.getString(movie.tags)
             reviews.text = context.getString(R.string.reviews2, movie.reviews)
             duration.text = context.getString(R.string.duration, movie.duration)
             poster.setImageResource(movie.poster)
@@ -59,6 +61,6 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
     }
 }
 interface MoviesListClickListener {
-    fun onMovieSelected(title: String)
+    fun onMovieSelected(title: Int)
 }
 

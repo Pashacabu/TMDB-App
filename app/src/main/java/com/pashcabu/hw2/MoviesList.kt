@@ -13,13 +13,17 @@ import com.pashcabu.hw2.moviesListRecyclerView.*
 
 class MoviesList : Fragment() {
 
+
+
     private var openMovieListener = object : MoviesListClickListener {
-        override fun onMovieSelected(title: String) {
-//            Toast.makeText(context, title+" is selected", Toast.LENGTH_SHORT).show()
-          activity?.supportFragmentManager?.beginTransaction()
-                  ?.add(R.id.fragment_container, MovieDetails.newInstance(title))
-                  ?.addToBackStack(title)
-                  ?.commit()
+        override fun onMovieSelected(title: Int) {
+//            Toast.makeText(context, context?.resources?.getString(title)+" is selected in MoviesList", Toast.LENGTH_SHORT).show()
+            activity?.let{
+                it.supportFragmentManager.beginTransaction()
+                        .add(R.id.fragment_container, MovieDetails.newInstance(title))
+                        .addToBackStack(it.resources.getString(title))
+                        .commit()
+            }
         }
     }
     private var adapter : MoviesListAdapter = MoviesListAdapter(openMovieListener)
