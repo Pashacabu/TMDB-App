@@ -48,7 +48,7 @@ class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     fun onBind(actor : Actor){
         actorPhoto.setImageResource(actor.image)
-        actorName.setText(actor.name)
+        actorName.text=actorName.context.getString(actor.name)
     }
 
 }
