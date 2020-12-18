@@ -39,7 +39,12 @@ class MovieDetailsAdapter(private var movieDetailsActorsClickListener : MovieDet
         actors = cast
 
     }
-
+//companion object{
+//    const val AVENGERS = "Avengers: End Game"
+//    const val TENET = "Tenet"
+//    const val BLACK_WIDOW = "Black Widow"
+//    const val WONDER_WOMAN_1984 = "Wonder Woman 1984"
+//}
 }
 class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
