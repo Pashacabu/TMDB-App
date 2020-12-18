@@ -17,7 +17,6 @@ class MoviesList : Fragment() {
 
     private var openMovieListener = object : MoviesListClickListener {
         override fun onMovieSelected(title: Int) {
-//            Toast.makeText(context, context?.resources?.getString(title)+" is selected in MoviesList", Toast.LENGTH_SHORT).show()
             activity?.let{
                 it.supportFragmentManager.beginTransaction()
                         .add(R.id.fragment_container, MovieDetails.newInstance(title))

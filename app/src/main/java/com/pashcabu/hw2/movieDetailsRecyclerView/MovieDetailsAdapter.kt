@@ -39,12 +39,7 @@ class MovieDetailsAdapter(private var movieDetailsActorsClickListener : MovieDet
         actors = cast
 
     }
-//companion object{
-//    const val AVENGERS = "Avengers: End Game"
-//    const val TENET = "Tenet"
-//    const val BLACK_WIDOW = "Black Widow"
-//    const val WONDER_WOMAN_1984 = "Wonder Woman 1984"
-//}
+
 }
 class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
@@ -53,7 +48,7 @@ class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     fun onBind(actor : Actor){
         actorPhoto.setImageResource(actor.image)
-        actorName.text=actorName.context.getString(actor.name)
+        actorName.setText(actor.name)
     }
 
 }

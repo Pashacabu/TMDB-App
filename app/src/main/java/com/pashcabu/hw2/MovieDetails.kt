@@ -25,18 +25,19 @@ import com.pashcabu.hw2.moviesListRecyclerView.MoviesData
 class MovieDetails : Fragment() {
 
 
+    private var toast : Toast? = null
     private var backArrow:ImageView?=null
     private var movieDetailsClickListener : MovieDetailsClickListener?=null
     private var movieDetailsActorsClickListener = object : MovieDetailsActorsClickListener {
         override fun onActorSelected(actor: Actor) {
-//            if (toast==null){
-//                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
-//                toast?.show()
-//            } else {
-//                toast?.cancel()
-//                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
-//                toast?.show()
-//            }
+            if (toast==null){
+                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
+                toast?.show()
+            } else {
+                toast?.cancel()
+                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
+                toast?.show()
+            }
         }
     }
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener )
@@ -45,33 +46,31 @@ class MovieDetails : Fragment() {
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        movieTitle = arguments?.getInt(TITLE) as Int
+        movieTitle = arguments?.getInt(TITLE) ?:0
         movie = MoviesData().findMovieByTitle(movieTitle)
         return inflater.inflate(R.layout.movie_details_fragment,container,false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        Toast.makeText(context, context?.getString(movieTitle), Toast.LENGTH_SHORT)
-
-//        Toast.makeText(context, movie.title, Toast.LENGTH_SHORT).show()
         val poster : ImageView = view.findViewById(R.id.mainPoster)
         poster.setImageResource(movie.bigPoster)
         val pgRating:TextView = view.findViewById(R.id.pgRating)
-        pgRating.text=context?.getString(movie.pgRating)
+        pgRating.setText(movie.pgRating)
         val title : TextView = view.findViewById(R.id.movie_title)
-        title.text= context?.getString(movie.title)
+        title.setText(movie.title)
         val tags : TextView = view.findViewById(R.id.tag_line)
-        tags.text = context?.getString(movie.tags)
+        tags.setText(movie.tags)
         val rating : RatingBar = view.findViewById(R.id.rating)
         rating.rating = movie.rating.toFloat()
         val reviews : TextView = view.findViewById(R.id.reviews)
         reviews.text = context?.getString(R.string.reviews2, movie.reviews)
         val story : TextView = view.findViewById(R.id.storylineDescription)
-        story.text = context?.getString(movie.story)
+        story.setText(movie.story)
         backArrow=view.findViewById<ImageView?>(R.id.backArrow)?.apply{
             setOnClickListener{movieDetailsClickListener?.onBackArrowPressed()}
         }
+
         val actorsRecyclerView : RecyclerView= view.findViewById(R.id.actors_recycler_view)
 
         actorsRecyclerView.adapter = adapter
