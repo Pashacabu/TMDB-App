@@ -45,30 +45,27 @@ class MovieDetails : Fragment() {
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        movieTitle = arguments?.getInt(TITLE) as Int
+        movieTitle = arguments?.getInt(TITLE) ?:0
         movie = MoviesData().findMovieByTitle(movieTitle)
         return inflater.inflate(R.layout.movie_details_fragment,container,false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        Toast.makeText(context, context?.getString(movieTitle), Toast.LENGTH_SHORT)
-
-//        Toast.makeText(context, movie.title, Toast.LENGTH_SHORT).show()
         val poster : ImageView = view.findViewById(R.id.mainPoster)
         poster.setImageResource(movie.bigPoster)
         val pgRating:TextView = view.findViewById(R.id.pgRating)
-        pgRating.text=context?.getString(movie.pgRating)
+        pgRating.setText(movie.pgRating)
         val title : TextView = view.findViewById(R.id.movie_title)
-        title.text= context?.getString(movie.title)
+        title.setText(movie.title)
         val tags : TextView = view.findViewById(R.id.tag_line)
-        tags.text = context?.getString(movie.tags)
+        tags.setText(movie.tags)
         val rating : RatingBar = view.findViewById(R.id.rating)
         rating.rating = movie.rating.toFloat()
         val reviews : TextView = view.findViewById(R.id.reviews)
         reviews.text = context?.getString(R.string.reviews2, movie.reviews)
         val story : TextView = view.findViewById(R.id.storylineDescription)
-        story.text = context?.getString(movie.story)
+        story.setText(movie.story)
         backArrow=view.findViewById<ImageView?>(R.id.backArrow)?.apply{
             setOnClickListener{movieDetailsClickListener?.onBackArrowPressed()}
         }
