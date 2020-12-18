@@ -42,10 +42,10 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
         private val context: Context = view.context
 
         fun onBindMovieData(movie: Movie) {
-            title.text = context.resources.getString(movie.title)
-            pgRating.text = context.resources.getString(movie.pgRating)
+            title.setText(movie.title)
+            pgRating.setText(movie.pgRating)
             rating.rating = movie.rating.toFloat()
-            tagLine.text = context.resources.getString(movie.tags)
+            tagLine.setText(movie.tags)
             reviews.text = context.getString(R.string.reviews2, movie.reviews)
             duration.text = context.getString(R.string.duration, movie.duration)
             poster.setImageResource(movie.poster)
