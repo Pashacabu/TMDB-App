@@ -1,5 +1,6 @@
 package com.pashcabu.hw2
 
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,24 +10,28 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.pashcabu.hw2.data.Movie
+import com.pashcabu.hw2.data.loadMovies
 import com.pashcabu.hw2.moviesListRecyclerView.*
+import kotlinx.coroutines.*
 
 class MoviesList : Fragment() {
 
 
 
     private var openMovieListener = object : MoviesListClickListener {
-        override fun onMovieSelected(title: Int) {
-//            Toast.makeText(context, context?.resources?.getString(title)+" is selected in MoviesList", Toast.LENGTH_SHORT).show()
+        override fun onMovieSelected(movieID: Int, title : String) {
             activity?.let{
                 it.supportFragmentManager.beginTransaction()
-                        .add(R.id.fragment_container, MovieDetails.newInstance(title))
-                        .addToBackStack(it.resources.getString(title))
+                        .add(R.id.fragment_container, MovieDetails.newInstance(movieID))
+                        .addToBackStack(title)
                         .commit()
             }
         }
     }
     private var adapter : MoviesListAdapter = MoviesListAdapter(openMovieListener)
+
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.movies_list_fragment, container, false)
@@ -49,8 +54,12 @@ class MoviesList : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        adapter.loadMoviesList(MoviesData().getMovies())
+        val deferred : Deferred<List<Movie>?> = coroutineScope.async { context?.let { loadMovies(it) } }
+        runBlocking { adapter.loadMoviesList(deferred.await()) }
+
     }
+
+
 }
 
 

@@ -27,7 +27,6 @@
             android:id="@+id/poster_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/poster_avengers"
             android:scaleType="centerCrop" />
         <ImageView
             android:layout_width="match_parent"
@@ -51,7 +50,7 @@
         android:layout_height="wrap_content"
         android:text="@string/pgRating"
         android:textColor="@color/white"
-        android:textSize="12sp"
+        android:textSize="12dp"
         android:textStyle="bold"
         android:gravity="center"
         app:layout_constraintTop_toTopOf="@id/pgRatingRectangle"
@@ -67,19 +66,18 @@
         app:layout_constraintBottom_toBottomOf="@id/pgRatingRectangle"
         app:layout_constraintEnd_toEndOf="@id/movie"
         android:layout_margin="8dp"/>
+
     <TextView
         android:id="@+id/tag_line"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginBottom="22dp"
+        android:singleLine="false"
         android:text="@string/tagLine"
         android:textColor="@color/pink_ish"
         android:textSize="@dimen/movies_list_item_tags"
-        app:layout_constraintLeft_toLeftOf="@id/poster"
         app:layout_constraintBottom_toBottomOf="@id/poster"
-        android:layout_marginBottom="22dp"
-        android:layout_marginStart="8dp"
-        />
+        app:layout_constraintLeft_toLeftOf="@id/poster" />
 
     <RatingBar
         android:id="@+id/rating"

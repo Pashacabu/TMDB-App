@@ -1,24 +1,19 @@
 package com.pashcabu.hw2.movieDetailsRecyclerView
 
-import android.app.Activity
-import android.app.Application
-import android.content.Context
-import android.content.res.Resources
-import android.provider.Settings.Global.getString
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.annotation.StringRes
 import androidx.recyclerview.widget.RecyclerView
-import com.pashcabu.hw2.MovieDetails
+import com.bumptech.glide.Glide
 import com.pashcabu.hw2.R
-import com.pashcabu.hw2.moviesListRecyclerView.MoviesData
-import java.util.zip.Inflater
+import com.pashcabu.hw2.data.Actor
+
 
 class MovieDetailsAdapter(private var movieDetailsActorsClickListener : MovieDetailsActorsClickListener) : RecyclerView.Adapter<ActorsViewHolder>() {
-    var actors : List<Actor> = listOf()
+    var actors : List<com.pashcabu.hw2.data.Actor> = listOf()
 
 
 
@@ -35,25 +30,24 @@ class MovieDetailsAdapter(private var movieDetailsActorsClickListener : MovieDet
     override fun getItemCount(): Int {
         return actors.size
     }
-    fun loadActorsData(cast : List<Actor>){
+    fun loadActorsData(cast : List<com.pashcabu.hw2.data.Actor>){
         actors = cast
 
     }
-//companion object{
-//    const val AVENGERS = "Avengers: End Game"
-//    const val TENET = "Tenet"
-//    const val BLACK_WIDOW = "Black Widow"
-//    const val WONDER_WOMAN_1984 = "Wonder Woman 1984"
-//}
+
 }
 class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     private val actorPhoto : ImageView = view.findViewById(R.id.actor_photo)
     private val actorName : TextView = view.findViewById(R.id.actor_name)
+    private val context = view.context
 
-    fun onBind(actor : Actor){
-        actorPhoto.setImageResource(actor.image)
-        actorName.text=actorName.context.getString(actor.name)
+    fun onBind(actor : com.pashcabu.hw2.data.Actor){
+        Glide.with(context)
+            .load(actor.picture)
+            .placeholder(R.drawable.empty_person)
+            .into(actorPhoto)
+        actorName.text=actor.name
     }
 
 }

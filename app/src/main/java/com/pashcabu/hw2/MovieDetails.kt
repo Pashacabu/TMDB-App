@@ -1,9 +1,9 @@
 package com.pashcabu.hw2
 
+import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.os.Bundle
-import android.text.Layout
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,61 +15,70 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
-import com.pashcabu.hw2.movieDetailsRecyclerView.Actor
+import com.bumptech.glide.Glide
+import com.pashcabu.hw2.data.loadMovie
 import com.pashcabu.hw2.movieDetailsRecyclerView.MovieDetailsActorsClickListener
 import com.pashcabu.hw2.movieDetailsRecyclerView.MovieDetailsAdapter
-import com.pashcabu.hw2.moviesListRecyclerView.Movie
-import com.pashcabu.hw2.moviesListRecyclerView.MoviesData
+import kotlinx.coroutines.*
 
 class MovieDetails : Fragment() {
 
-
+    private var toast :Toast? = null
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var backArrow:ImageView?=null
+    private var backButton:TextView?=null
     private var movieDetailsClickListener : MovieDetailsClickListener?=null
     private var movieDetailsActorsClickListener = object : MovieDetailsActorsClickListener {
-        override fun onActorSelected(actor: Actor) {
-//            if (toast==null){
-//                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
-//                toast?.show()
-//            } else {
-//                toast?.cancel()
-//                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
-//                toast?.show()
-//            }
+        override fun onActorSelected(actor: com.pashcabu.hw2.data.Actor) {
+            if (toast==null){
+                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
+                toast?.show()
+            } else {
+                toast?.cancel()
+                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
+                toast?.show()
+            }
         }
     }
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener )
-    private var movieTitle = 0
-    private var movie:Movie = MoviesData().getMovies()[0]
+    private var movieID = 0
+    private var movie:com.pashcabu.hw2.data.Movie? = null
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        movieTitle = arguments?.getInt(TITLE) as Int
-        movie = MoviesData().findMovieByTitle(movieTitle)
+        movieID = arguments?.getInt(TITLE) ?: 0
+        val job2 = coroutineScope.async {
+            context?.let { loadMovie(it, movieID) }
+        }
+        movie = runBlocking { job2.await() }
         return inflater.inflate(R.layout.movie_details_fragment,container,false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        Toast.makeText(context, context?.getString(movieTitle), Toast.LENGTH_SHORT)
-
-//        Toast.makeText(context, movie.title, Toast.LENGTH_SHORT).show()
-        val poster : ImageView = view.findViewById(R.id.mainPoster)
-        poster.setImageResource(movie.bigPoster)
-        val pgRating:TextView = view.findViewById(R.id.pgRating)
-        pgRating.text=context?.getString(movie.pgRating)
-        val title : TextView = view.findViewById(R.id.movie_title)
-        title.text= context?.getString(movie.title)
-        val tags : TextView = view.findViewById(R.id.tag_line)
-        tags.text = context?.getString(movie.tags)
-        val rating : RatingBar = view.findViewById(R.id.rating)
-        rating.rating = movie.rating.toFloat()
-        val reviews : TextView = view.findViewById(R.id.reviews)
-        reviews.text = context?.getString(R.string.reviews2, movie.reviews)
-        val story : TextView = view.findViewById(R.id.storylineDescription)
-        story.text = context?.getString(movie.story)
+        val poster: ImageView = view.findViewById(R.id.mainPoster)
+        context?.let { Glide.with(it)
+                .load(movie?.backdrop)
+                .placeholder(R.drawable.big_poster_placeholder)
+                .into(poster) }
+        val pgRating: TextView = view.findViewById(R.id.pgRating)
+        pgRating.text = movie?.minimumAge.toString()
+        val title: TextView = view.findViewById(R.id.movie_title)
+        title.text = movie?.title ?: "Nothing to show"
+        var tagLine = ""
+        movie?.let { movie -> movie.genres.forEach { tagLine+=it.name+", " } }
+        val tags: TextView = view.findViewById(R.id.tag_line)
+        tags.text = tagLine
+        val rating: RatingBar = view.findViewById(R.id.rating)
+        rating.rating = movie?.ratings?.div(2) ?: 0f
+        val reviews: TextView = view.findViewById(R.id.reviews)
+        reviews.text = context?.getString(R.string.reviews2, movie?.numberOfRatings ?: 0)
+        val story: TextView = view.findViewById(R.id.storylineDescription)
+        story.text = movie?.overview ?: "Nothing to show"
         backArrow=view.findViewById<ImageView?>(R.id.backArrow)?.apply{
+            setOnClickListener{movieDetailsClickListener?.onBackArrowPressed()}
+        }
+        backButton=view.findViewById<TextView?>(R.id.backButton)?.apply{
             setOnClickListener{movieDetailsClickListener?.onBackArrowPressed()}
         }
         val actorsRecyclerView : RecyclerView= view.findViewById(R.id.actors_recycler_view)
@@ -83,7 +92,7 @@ class MovieDetails : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        adapter.loadActorsData(movie.cast)
+        movie?.actors?.let { adapter.loadActorsData(it) }
 
     }
 
@@ -105,9 +114,9 @@ class MovieDetails : Fragment() {
     }
 
     companion object {
-        fun newInstance (title:Int): MovieDetails{
+        fun newInstance (movieID : Int ): MovieDetails{
             val arg = Bundle()
-            arg.putInt(TITLE, title)
+            arg.putInt(TITLE, movieID)
             val fragment = MovieDetails()
             fragment.arguments = arg
             return fragment
