@@ -1,5 +1,6 @@
 package com.pashcabu.hw2
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -7,9 +8,11 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.activity.OnBackPressedCallback
+import com.pashcabu.hw2.moviesListRecyclerView.Movie
 
-class MainActivity : AppCompatActivity(), MoviesList.MovieClickListener, MovieDetails.MovieDetailsClickListener{
-    var fragmentMovieDetails=MovieDetails()
+
+class MainActivity : AppCompatActivity(), MovieDetails.MovieDetailsClickListener{
+
     var fragmentMoviesList = MoviesList()
 
 
@@ -25,18 +28,15 @@ class MainActivity : AppCompatActivity(), MoviesList.MovieClickListener, MovieDe
         }
     }
 
-    override fun openMovieDetails() {
-        supportFragmentManager.beginTransaction()
-                .add(R.id.fragment_container, fragmentMovieDetails, DETAILS_FRAGMENT_TAG)
-                .addToBackStack(DETAILS_FRAGMENT_TAG)
-                .commit()
+    companion object {
+        private const val LIST_FRAGMENT_TAG = "MoviesList"
     }
+
+
 
     override fun onBackArrowPressed() {
         super.onBackPressed()
     }
-    companion object {
-        private const val LIST_FRAGMENT_TAG = "MoviesList"
-        private const val DETAILS_FRAGMENT_TAG = "MovieDetails"
-    }
+
+
 }

@@ -1,82 +1,55 @@
 package com.pashcabu.hw2
 
-import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.pashcabu.hw2.moviesListRecyclerView.*
 
 class MoviesList : Fragment() {
 
-    private var movieClickListener: MovieClickListener?=null
-    private var movie:ImageView?=null
-    private var like:ImageView?=null
-    private var isLiked:Boolean=false
+
+
+    private var openMovieListener = object : MoviesListClickListener {
+        override fun onMovieSelected(title: Int) {
+            activity?.let{
+                it.supportFragmentManager.beginTransaction()
+                        .add(R.id.fragment_container, MovieDetails.newInstance(title))
+                        .addToBackStack(it.resources.getString(title))
+                        .commit()
+            }
+        }
+    }
+    private var adapter : MoviesListAdapter = MoviesListAdapter(openMovieListener)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.movies_list_fragment, container,false)
-        isLiked = savedInstanceState?.getBoolean(IS_LIKED) ?: false
-        return view
+        return inflater.inflate(R.layout.movies_list_fragment, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        movie=view.findViewById<ImageView?>(R.id.movie).apply{
-            setOnClickListener { movieClickListener?.openMovieDetails() }
-        }
-        like=view.findViewById<ImageView?>(R.id.like).apply {
-            setOnClickListener { addToFavorite() }
-        }
-        if (isLiked){
-            like?.setImageResource(R.drawable.like_selected)
-        } else{
-            like?.setImageResource(R.drawable.like)
-        }
-
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is MovieClickListener){
-            movieClickListener = context
+        val moviesListRecyclerView: RecyclerView = view.findViewById(R.id.movies_list_recycler_view)
+        moviesListRecyclerView.setHasFixedSize(true)
+        moviesListRecyclerView.adapter = adapter
+        val orientation = view.context.resources.configuration.orientation
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            moviesListRecyclerView.layoutManager = GridLayoutManager(context, 2)
+            moviesListRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 7))
+        } else {
+            moviesListRecyclerView.layoutManager = GridLayoutManager(context, 3)
+            moviesListRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 14))
         }
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        movieClickListener=null
-
+    override fun onStart() {
+        super.onStart()
+        adapter.loadMoviesList(MoviesData().getMovies())
     }
-
-    private fun addToFavorite(){
-        isLiked = if (!isLiked){
-            like?.setImageResource(R.drawable.like_selected)
-            true
-        } else{
-            like?.setImageResource(R.drawable.like)
-            false
-        }
-
-
-    }
-
-    interface MovieClickListener{
-        fun openMovieDetails()
-
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putBoolean(IS_LIKED, isLiked)
-    }
-
-    companion object {
-        private const val IS_LIKED = "isLiked"
-    }
-
-
 }
 
 
