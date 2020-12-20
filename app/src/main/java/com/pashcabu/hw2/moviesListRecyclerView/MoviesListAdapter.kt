@@ -23,15 +23,12 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
 
     private var list: List<Movie> = listOf()
 
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MoviesListViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.movies_list_recycler_item, parent, false)
         return MoviesListViewHolder(view)
     }
 
-
     override fun onBindViewHolder(holder: MoviesListViewHolder, position: Int) {
-
         holder.onBindMovieData(list[position])
         holder.itemView.setOnClickListener {
             openMovieListener.onMovieSelected(list[position].id, list[position].title)
@@ -63,7 +60,6 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
                 .placeholder(R.drawable.poster_small_placeholder)
                 .into(poster)
         }
-
     }
 
     override fun getItemCount(): Int {
@@ -75,10 +71,7 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
             list = movies
         }
     }
-
-
 }
-
 interface MoviesListClickListener {
     fun onMovieSelected(movieID: Int, title: String)
 }
