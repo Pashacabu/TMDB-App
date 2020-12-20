@@ -1,17 +1,10 @@
 package com.pashcabu.hw2
 
-import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
-import android.widget.FrameLayout
-import android.widget.ImageView
-import androidx.activity.OnBackPressedCallback
-import com.pashcabu.hw2.moviesListRecyclerView.Movie
 
 
-class MainActivity : AppCompatActivity(), MovieDetails.MovieDetailsClickListener{
+class MainActivity : AppCompatActivity(), MovieDetailsFragment.MovieDetailsClickListener{
 
     var fragmentMoviesList = MoviesList()
 

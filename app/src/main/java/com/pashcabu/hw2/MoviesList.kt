@@ -1,12 +1,10 @@
 package com.pashcabu.hw2
 
-import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,7 +21,7 @@ class MoviesList : Fragment() {
         override fun onMovieSelected(movieID: Int, title : String) {
             activity?.let{
                 it.supportFragmentManager.beginTransaction()
-                        .add(R.id.fragment_container, MovieDetails.newInstance(movieID))
+                        .add(R.id.fragment_container, MovieDetailsFragment.newInstance(movieID))
                         .addToBackStack(title)
                         .commit()
             }
@@ -57,6 +55,12 @@ class MoviesList : Fragment() {
         val deferred : Deferred<List<Movie>?> = coroutineScope.async { context?.let { loadMovies(it) } }
         runBlocking { adapter.loadMoviesList(deferred.await()) }
 
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        coroutineScope.cancel()
     }
 
 

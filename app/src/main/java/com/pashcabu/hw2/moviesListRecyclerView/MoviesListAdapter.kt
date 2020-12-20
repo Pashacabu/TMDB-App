@@ -60,7 +60,7 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
             duration.text = context.getString(R.string.duration, movie.runtime)
             Glide.with(context)
                 .load(movie.poster)
-                .placeholder(R.drawable.poster_placeholder)
+                .placeholder(R.drawable.poster_small_placeholder)
                 .into(poster)
         }
 

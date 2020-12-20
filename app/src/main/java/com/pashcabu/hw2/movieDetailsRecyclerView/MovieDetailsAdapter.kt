@@ -13,7 +13,7 @@ import com.pashcabu.hw2.data.Actor
 
 
 class MovieDetailsAdapter(private var movieDetailsActorsClickListener : MovieDetailsActorsClickListener) : RecyclerView.Adapter<ActorsViewHolder>() {
-    var actors : List<com.pashcabu.hw2.data.Actor> = listOf()
+    var actors : List<Actor> = listOf()
 
 
 
@@ -30,7 +30,7 @@ class MovieDetailsAdapter(private var movieDetailsActorsClickListener : MovieDet
     override fun getItemCount(): Int {
         return actors.size
     }
-    fun loadActorsData(cast : List<com.pashcabu.hw2.data.Actor>){
+    fun loadActorsData(cast : List<Actor>){
         actors = cast
 
     }
@@ -42,7 +42,7 @@ class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     private val actorName : TextView = view.findViewById(R.id.actor_name)
     private val context = view.context
 
-    fun onBind(actor : com.pashcabu.hw2.data.Actor){
+    fun onBind(actor : Actor){
         Glide.with(context)
             .load(actor.picture)
             .placeholder(R.drawable.empty_person)
