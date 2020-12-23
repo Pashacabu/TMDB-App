@@ -1,83 +1,15 @@
 <resources>
-    <string name="app_name">HW2</string>
+    <string name="app_name">HW5</string>
     <string name="back">Back</string>
-    <string name="pgRating">13+</string>
-    <string name="title">Avengers:\nEnd Game</string>
-    <string name="title_in_one_line">Avengers: End Game</string>
-    <string name="tagLine">Action, Adventure, Fantasy</string>
-    <string name="reviews">125 Reviews</string>
     <string name="storylineHeader">Storyline</string>
-    <string name="storylineDescription">After the devastating events of Avengers: Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more in order to reverse Thanos\' actions and restore balance to the universe.</string>
     <string name="cast">Cast</string>
-    <string name="cast1">Robert Downey Jr.</string>
-    <string name="cast2">Chris Evans</string>
-    <string name="cast3">Mark Ruffalo</string>
-    <string name="cast4">Chris Hemsworth</string>
     <string name="moviesList">Movies List</string>
-    <string name="length">137 min</string>
 
 
-    <string name="reviews2">%d Reviews</string>
+    <string name="pg">%d+</string>
+    <string name="reviews">%d Reviews</string>
     <string name="duration">%d MIN</string>
-
-    <!--Movies titles-->
-    <string name="avengers">Avengers: End Game</string>
-    <string name="tenet">Tenet</string>
-    <string name="black_widow">Black Widow</string>
-    <string name="wonder_woman_1984">Wonder Woman 1984</string>
-
-    <!-- PG Ratings-->
-    <string name="pg13">13+</string>
-    <string name="pg16">16+</string>
-
-    <!--Tags-->
-    <string name="tag_action">Action</string>
-    <string name="tag_adventure">Adventure</string>
-    <string name="tag_drama">Drama</string>
-    <string name="tag_sci_fi">Sci-Fi</string>
-    <string name="tag_thriller">Thriller</string>
-    <string name="tag_fantasy">Fantasy</string>
-    <string name="tag_none">No tags to show</string>
-    <string name="tags_avengers">Action, Adventure, Drama</string>
-    <string name="tags_tenet">Action, Sci-Fi, Thriller</string>
-    <string name="tags_black_widow">Action, Adventure, Sci-Fi</string>
-    <string name="tags_wonder_woman">Action, Adventure, Fantasy</string>
-
-
-
-
-    <!--Storylines-->
-    <string name="avengers_storyline">After the devastating events of Avengers: Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more in order to reverse Thanos\' actions and restore balance to the universe.</string>
-    <string name="tenet_storyline">A secret agent embarks on a dangerous, time-bending mission to prevent the start of World War III.</string>
-    <string name="black_widow_storyline">At birth the Black Widow (aka Natasha Romanova) is given to the KGB, which grooms her to become its ultimate operative. When the U.S.S.R. breaks up, the government tries to kill her as the action moves to present-day New York, where she is a freelance operative.</string>
-    <string name="wonder_woman_storyline">Wonder Woman squares off against Maxwell Lord and the Cheetah, a villainess who possesses superhuman strength and agility.</string>
-
-    <!--Actors-->
-    <string name="robert_dw_jr">Robert Downey Jr.</string>
-    <string name="chris_evans">Chris Evans</string>
-    <string name="mark_ruffalo">Mark Ruffalo</string>
-    <string name="chris_hemsworth">Chris Hemsworth</string>
-    <string name="brie_larsen">Brie Larsen</string>
-    <string name="paul_rudd">Paul Rudd</string>
-    <string name="jeremy_renner">Jeremy Renner</string>
-    <string name="caren_gillian">Caren Gillian</string>
-    <string name="tom_hollnd">Tom Holland</string>
-    <string name="elizabeth_debicki">Elisabeth Debicki</string>
-    <string name="robert_pattinson">Robert Pattinson</string>
-    <string name="john_david_washington">John David Wasington</string>
-    <string name="clemence_poesy">Clemence Poesy</string>
-    <string name="kenneth_branagh">Kennrth Branagh</string>
-    <string name="scarlet_johansson">Scarlet Johansson</string>
-    <string name="florence_pugh">Florence Pugh</string>
-    <string name="rachel_weisz">Raachel Weisz</string>
-    <string name="aaron_taylor_johnson">Aaron Taylor Johnson</string>
-    <string name="david_harbour">David Harbour</string>
-    <string name="gal_gadot">Gal Gadot</string>
-    <string name="chris_pine">Chris Pine</string>
-    <string name="kristen_wiig">Kristen Wiig</string>
-    <string name="pedro_pascal">Pedro Pascal</string>
-    <string name="connie_nielsen">Connie Nielsen</string>
-
+    <string name="no_actors_data">No cast data available</string>
 
 
 </resources>

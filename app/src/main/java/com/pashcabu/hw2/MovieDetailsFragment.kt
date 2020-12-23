@@ -21,6 +21,7 @@ import kotlinx.coroutines.*
 
 class MovieDetailsFragment : Fragment() {
 
+
     private lateinit var poster: ImageView
     private lateinit var pgRating: TextView
     private lateinit var title: TextView
@@ -49,7 +50,6 @@ class MovieDetailsFragment : Fragment() {
     }
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener)
     private var movieID = 0
-    private var movie: com.pashcabu.hw2.data.Movie? = null
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -62,37 +62,28 @@ class MovieDetailsFragment : Fragment() {
         coroutineScope.launch {
             movieID = arguments?.getInt(TITLE) ?: 0
             val movie = loadMovie(requireContext(), movieID)
-            updateData(movie)}
+            updateData(movie)
+        }
     }
 
-    suspend fun updateData(movie : Movie) = withContext(Dispatchers.Main) {
+    private suspend fun updateData(movie: Movie) = withContext(Dispatchers.Main) {
         context?.let {
             Glide.with(it)
                     .load(movie.backdrop)
                     .placeholder(R.drawable.poster_big_placeholder)
                     .into(poster)
         }
-
-        pgRating.text = movie.minimumAge.toString()
-
-        title.text = movie.title ?: "Nothing to show"
+        pgRating.text = context?.resources?.getString(R.string.pg, movie.minimumAge) ?: ""
+        title.text = movie.title
         var tagLine = ""
         movie.let { movie -> movie.genres.forEach { tagLine += it.name + ", " } }
-
         tags.text = tagLine
-
-        rating.rating = movie.ratings?.div(2) ?: 0f
-
-        reviews.text = context?.getString(R.string.reviews2, movie.numberOfRatings ?: 0)
-
-        story.text = movie.overview ?: "Nothing to show"
-
-
-        if (movie != null && movie!!.actors.isEmpty()) {
-            castTitle.text = "No cast data avaliable"
+        rating.rating = movie.ratings / 2
+        reviews.text = context?.getString(R.string.reviews, movie.numberOfRatings)
+        story.text = movie.overview
+        if (movie.actors.isEmpty()) {
+            castTitle.text = getString(R.string.no_actors_data)
         }
-
-
         actorsRecyclerView.adapter = adapter
         adapter.loadActorsData(movie.actors)
 
@@ -116,12 +107,6 @@ class MovieDetailsFragment : Fragment() {
         }
         actorsRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         actorsRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 5))
-    }
-
-    override fun onStart() {
-        super.onStart()
-//        movie.actors?.let { adapter.loadActorsData(it) }
-
     }
 
     override fun onAttach(context: Context) {
