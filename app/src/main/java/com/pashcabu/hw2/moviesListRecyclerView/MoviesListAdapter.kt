@@ -2,22 +2,20 @@ package com.pashcabu.hw2.moviesListRecyclerView
 
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
-import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
-import com.pashcabu.hw2.MoviesList
+import com.bumptech.glide.Glide
 import com.pashcabu.hw2.R
+import com.pashcabu.hw2.data.Movie
 
 class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) : RecyclerView.Adapter<MoviesListAdapter.MoviesListViewHolder>() {
 
-    private var list: List<Movie> = listOf()
+    var list: List<Movie> = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MoviesListViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.movies_list_recycler_item, parent, false)
@@ -27,11 +25,12 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
     override fun onBindViewHolder(holder: MoviesListViewHolder, position: Int) {
         holder.onBindMovieData(list[position])
         holder.itemView.setOnClickListener {
-            openMovieListener.onMovieSelected(list[position].title)
+            openMovieListener.onMovieSelected(list[position].id, list[position].title)
         }
     }
 
     class MoviesListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+
         private val title: TextView = view.findViewById(R.id.title)
         private val pgRating: TextView = view.findViewById(R.id.pgRating)
         private val rating: RatingBar = view.findViewById(R.id.rating)
@@ -42,13 +41,18 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
         private val context: Context = view.context
 
         fun onBindMovieData(movie: Movie) {
-            title.setText(movie.title)
-            pgRating.setText(movie.pgRating)
-            rating.rating = movie.rating.toFloat()
-            tagLine.setText(movie.tags)
-            reviews.text = context.getString(R.string.reviews2, movie.reviews)
-            duration.text = context.getString(R.string.duration, movie.duration)
-            poster.setImageResource(movie.poster)
+            title.text = movie.title
+            pgRating.text = context.resources.getString(R.string.pg, movie.minimumAge)
+            rating.rating = movie.ratings / 2
+            var tags = ""
+            movie.genres.forEach { tags += it.name + ", " }
+            tagLine.text = tags
+            reviews.text = context.resources.getString(R.string.reviews, movie.numberOfRatings)
+            duration.text = context.getString(R.string.duration, movie.runtime)
+            Glide.with(context)
+                    .load(movie.poster)
+                    .placeholder(R.drawable.poster_small_placeholder)
+                    .into(poster)
         }
     }
 
@@ -56,11 +60,17 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
         return list.size
     }
 
-    fun loadMoviesList(moviesList: List<Movie>) {
-        list = moviesList
+    fun loadMoviesList(movies: List<Movie>) {
+        list = movies
+
     }
+
+
 }
+
 interface MoviesListClickListener {
-    fun onMovieSelected(title: Int)
+    fun onMovieSelected(movieID: Int, title: String)
 }
+
+
 
