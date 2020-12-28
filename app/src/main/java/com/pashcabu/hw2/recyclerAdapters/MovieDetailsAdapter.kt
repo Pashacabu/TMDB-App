@@ -1,4 +1,4 @@
-package com.pashcabu.hw2.movieDetailsRecyclerView
+package com.pashcabu.hw2.recyclerAdapters
 
 
 import android.view.LayoutInflater
@@ -12,11 +12,13 @@ import com.pashcabu.hw2.R
 import com.pashcabu.hw2.data.Actor
 
 
-class MovieDetailsAdapter(private var movieDetailsActorsClickListener: MovieDetailsActorsClickListener) : RecyclerView.Adapter<ActorsViewHolder>() {
+class MovieDetailsAdapter(private var movieDetailsActorsClickListener: MovieDetailsActorsClickListener) :
+    RecyclerView.Adapter<ActorsViewHolder>() {
     var actors: List<Actor> = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActorsViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.cast_recycler_item, parent, false)
+        val view =
+            LayoutInflater.from(parent.context).inflate(R.layout.cast_recycler_item, parent, false)
         return ActorsViewHolder(view)
     }
 
@@ -43,9 +45,9 @@ class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     fun onBind(actor: Actor) {
         Glide.with(context)
-                .load(actor.picture)
-                .placeholder(R.drawable.empty_person)
-                .into(actorPhoto)
+            .load(actor.picture)
+            .placeholder(R.drawable.empty_person)
+            .into(actorPhoto)
         actorName.text = actor.name
     }
 }

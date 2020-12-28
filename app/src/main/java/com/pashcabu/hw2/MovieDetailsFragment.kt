@@ -10,14 +10,14 @@ import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.pashcabu.hw2.data.Movie
-import com.pashcabu.hw2.data.loadMovie
-import com.pashcabu.hw2.movieDetailsRecyclerView.MovieDetailsActorsClickListener
-import com.pashcabu.hw2.movieDetailsRecyclerView.MovieDetailsAdapter
-import kotlinx.coroutines.*
+import com.pashcabu.hw2.recyclerAdapters.MovieDetailsActorsClickListener
+import com.pashcabu.hw2.recyclerAdapters.MovieDetailsAdapter
+
 
 class MovieDetailsFragment : Fragment() {
 
@@ -32,7 +32,6 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var castTitle: TextView
     private lateinit var actorsRecyclerView: RecyclerView
     private var toast: Toast? = null
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var backArrow: ImageView? = null
     private var backButton: TextView? = null
     private var movieDetailsClickListener: MovieDetailsClickListener? = null
@@ -50,33 +49,43 @@ class MovieDetailsFragment : Fragment() {
     }
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener)
     private var movieID = 0
+    private val viewModel: MyViewModel by viewModels()
+    private var movie: Movie? = null
 
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.movie_details_fragment, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         findViews(view)
-        coroutineScope.launch {
-            movieID = arguments?.getInt(TITLE) ?: 0
-            val movie = loadMovie(requireContext(), movieID)
-            updateData(movie)
-        }
+        movieID = arguments?.getInt(TITLE) ?: 0
+        loadMovieDetailsData()
+        viewModel.liveMovieDetailsData.observe(this.viewLifecycleOwner, {
+            updateData(it)
+        })
     }
 
-    private suspend fun updateData(movie: Movie) = withContext(Dispatchers.Main) {
+    private fun loadMovieDetailsData() {
+        viewModel.loadMovieDetailsToLiveData(requireContext(), movieID)
+    }
+
+    private fun updateData(movie: Movie) {
         context?.let {
             Glide.with(it)
-                    .load(movie.backdrop)
-                    .placeholder(R.drawable.poster_big_placeholder)
-                    .into(poster)
+                .load(movie.backdrop)
+                .placeholder(R.drawable.poster_big_placeholder)
+                .into(poster)
         }
         pgRating.text = context?.resources?.getString(R.string.pg, movie.minimumAge) ?: ""
         title.text = movie.title
         var tagLine = ""
-        movie.let { movie -> movie.genres.forEach { tagLine += it.name + ", " } }
+        movie.let { it -> it.genres.forEach { tagLine += it.name + ", " } }
         tags.text = tagLine
         rating.rating = movie.ratings / 2
         reviews.text = context?.getString(R.string.reviews, movie.numberOfRatings)
@@ -86,7 +95,6 @@ class MovieDetailsFragment : Fragment() {
         }
         actorsRecyclerView.adapter = adapter
         adapter.loadActorsData(movie.actors)
-
     }
 
     private fun findViews(view: View) {
@@ -105,7 +113,8 @@ class MovieDetailsFragment : Fragment() {
         backButton = view.findViewById<TextView?>(R.id.backButton)?.apply {
             setOnClickListener { movieDetailsClickListener?.onBackArrowPressed() }
         }
-        actorsRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        actorsRecyclerView.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         actorsRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 5))
     }
 
@@ -120,12 +129,6 @@ class MovieDetailsFragment : Fragment() {
         super.onDetach()
         movieDetailsClickListener = null
     }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        coroutineScope.cancel()
-    }
-
 
     interface MovieDetailsClickListener {
         fun onBackArrowPressed()
@@ -142,4 +145,5 @@ class MovieDetailsFragment : Fragment() {
 
         const val TITLE = "movieTitle"
     }
+
 }

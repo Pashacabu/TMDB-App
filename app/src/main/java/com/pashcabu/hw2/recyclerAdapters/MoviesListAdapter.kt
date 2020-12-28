@@ -1,4 +1,4 @@
-package com.pashcabu.hw2.moviesListRecyclerView
+package com.pashcabu.hw2.recyclerAdapters
 
 
 import android.content.Context
@@ -13,12 +13,14 @@ import com.bumptech.glide.Glide
 import com.pashcabu.hw2.R
 import com.pashcabu.hw2.data.Movie
 
-class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) : RecyclerView.Adapter<MoviesListAdapter.MoviesListViewHolder>() {
+class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) :
+    RecyclerView.Adapter<MoviesListAdapter.MoviesListViewHolder>() {
 
     var list: List<Movie> = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MoviesListViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.movies_list_recycler_item, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.movies_list_recycler_item, parent, false)
         return MoviesListViewHolder(view)
     }
 
@@ -50,9 +52,9 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
             reviews.text = context.resources.getString(R.string.reviews, movie.numberOfRatings)
             duration.text = context.getString(R.string.duration, movie.runtime)
             Glide.with(context)
-                    .load(movie.poster)
-                    .placeholder(R.drawable.poster_small_placeholder)
-                    .into(poster)
+                .load(movie.poster)
+                .placeholder(R.drawable.poster_small_placeholder)
+                .into(poster)
         }
     }
 
@@ -64,7 +66,6 @@ class MoviesListAdapter(private val openMovieListener: MoviesListClickListener) 
         list = movies
 
     }
-
 
 }
 
