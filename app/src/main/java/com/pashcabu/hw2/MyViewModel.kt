@@ -1,6 +1,7 @@
 package com.pashcabu.hw2
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -19,17 +20,23 @@ class MyViewModel : ViewModel() {
     val liveMovieDetailsData: LiveData<Movie> get() = mutableMovieDetailsData
 
     fun loadMoviesListToLiveData(context: Context) {
-        viewModelScope.launch {
-            val list = loadMovies(context)
-            mutableMoviesListData.value = list
+        if (mutableMoviesListData.value == emptyList<Movie>()) {
+            viewModelScope.launch {
+                val list = loadMovies(context)
+                mutableMoviesListData.value = list
+            }
         }
+
 
     }
 
     fun loadMovieDetailsToLiveData(context: Context, id: Int) {
-        viewModelScope.launch {
-            val movie = loadMovie(context, id)
-            mutableMovieDetailsData.value = movie
+        if (mutableMovieDetailsData.value == null) {
+            viewModelScope.launch {
+                val movie = loadMovie(context, id)
+                mutableMovieDetailsData.value = movie
+            }
         }
+
     }
 }
