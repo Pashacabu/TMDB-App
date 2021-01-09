@@ -20,7 +20,7 @@ class MyViewModel : ViewModel() {
     val liveMovieDetailsData: LiveData<Movie> get() = mutableMovieDetailsData
 
     fun loadMoviesListToLiveData(context: Context) {
-        if (mutableMoviesListData.value == emptyList<Movie>()) {
+        if (mutableMoviesListData.value.isNullOrEmpty()) {
             viewModelScope.launch {
                 val list = loadMovies(context)
                 mutableMoviesListData.value = list
