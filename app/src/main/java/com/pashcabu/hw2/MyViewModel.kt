@@ -1,5 +1,6 @@
 package com.pashcabu.hw2
 
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -27,13 +28,18 @@ class MyViewModel : ViewModel() {
         if (mutableMoviesListData.value.isNullOrEmpty()) {
             viewModelScope.launch {
                 try {
-                    val genresMap: Map<Int?, String?>? =
-                        NetworkModule().apiService.getGenres(api_key).genres?.associateBy({ it?.genreId },
-                            { it?.genreName })
-                    val listOfMovies = NetworkModule().apiService.getMoviesList(api_key, pageNumber)
-                    val output = listOfMovies.results?.map { genresIntToStrings(it, genresMap) }
-                    mutableMoviesListData.value = output
-                    genresAll = genresMap
+                    if (mutableMoviesListData.value.isNullOrEmpty()){
+                        val genresMap: Map<Int?, String?>? =
+                            NetworkModule().apiService.getGenres(api_key).genres?.associateBy({ it?.genreId },
+                                { it?.genreName })
+                        Log.d("Genres", "are loading")
+                        val listOfMovies = NetworkModule().apiService.getMoviesList(api_key, pageNumber)
+                        Log.d("Movie List", "is loading")
+                        val output = listOfMovies.results?.map { genresIntToStrings(it, genresMap) }
+                        mutableMoviesListData.value = output
+                        genresAll = genresMap
+                    }
+
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -52,10 +58,14 @@ class MyViewModel : ViewModel() {
         if (mutableMovieDetailsData.value == null) {
             viewModelScope.launch {
                 try {
-                    val movie = NetworkModule().apiService.getMovieDetails(id, api_key)
-                    mutableMovieDetailsData.value = movie
-                    val cast = NetworkModule().apiService.getActors(id, api_key)
-                    mutableCastData.value = cast
+                    if (mutableMovieDetailsData.value==null){
+                        val movie = NetworkModule().apiService.getMovieDetails(id, api_key)
+                        Log.d("Movie Details", "is loading")
+                        mutableMovieDetailsData.value = movie
+                        val cast = NetworkModule().apiService.getActors(id, api_key)
+                        mutableCastData.value = cast
+                    }
+
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
