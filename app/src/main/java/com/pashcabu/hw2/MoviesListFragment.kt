@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
@@ -40,7 +41,6 @@ class MoviesListFragment : Fragment() {
     }
 
     private fun setUpAdapter(view: View) {
-
         val orientation = view.context.resources.configuration.orientation
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             moviesListRecyclerView?.layoutManager = GridLayoutManager(context, 2)
@@ -49,12 +49,10 @@ class MoviesListFragment : Fragment() {
             moviesListRecyclerView?.layoutManager = GridLayoutManager(context, 3)
             moviesListRecyclerView?.addItemDecoration(Decorator().itemSpacing(view, 14))
         }
-
-
     }
 
     private fun loadData() {
-        viewModel.loadMoviesListToLiveData(requireContext())
+        viewModel.loadMoviesListToLiveData()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

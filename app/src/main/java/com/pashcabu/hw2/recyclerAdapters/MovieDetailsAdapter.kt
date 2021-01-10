@@ -8,13 +8,14 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.pashcabu.hw2.Cast
+import com.pashcabu.hw2.CastItem
 import com.pashcabu.hw2.R
-import com.pashcabu.hw2.data.Actor
 
 
 class MovieDetailsAdapter(private var movieDetailsActorsClickListener: MovieDetailsActorsClickListener) :
     RecyclerView.Adapter<ActorsViewHolder>() {
-    var actors: List<Actor> = listOf()
+    var actors: List<CastItem?>? = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActorsViewHolder {
         val view =
@@ -23,18 +24,23 @@ class MovieDetailsAdapter(private var movieDetailsActorsClickListener: MovieDeta
     }
 
     override fun onBindViewHolder(holder: ActorsViewHolder, position: Int) {
-        holder.onBind(actors[position])
-        holder.itemView.setOnClickListener { movieDetailsActorsClickListener.onActorSelected(actors[position]) }
+        holder.onBind(actors?.get(position))
+        holder.itemView.setOnClickListener {
+            movieDetailsActorsClickListener.onActorSelected(
+                actors?.get(
+                    position
+                )
+            )
+        }
     }
 
     override fun getItemCount(): Int {
-        return actors.size
+        return actors?.size ?: 0
     }
 
-    fun loadActorsData(cast: List<Actor>) {
-        actors = cast
+    fun loadActorsData(cast: Cast) {
+        actors = cast.castList
     }
-
 }
 
 class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -43,15 +49,17 @@ class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     private val actorName: TextView = view.findViewById(R.id.actor_name)
     private val context = view.context
 
-    fun onBind(actor: Actor) {
+    fun onBind(actor: CastItem?) {
         Glide.with(context)
-            .load(actor.picture)
+            .load(baseImageUrl + actor?.actorPhoto)
             .placeholder(R.drawable.empty_person)
             .into(actorPhoto)
-        actorName.text = actor.name
+        actorName.text = context.getString(R.string.starring, actor?.actorName, actor?.character)
     }
 }
 
 interface MovieDetailsActorsClickListener {
-    fun onActorSelected(actor: Actor)
+    fun onActorSelected(actor: CastItem?)
 }
+
+const val baseImageUrl = "https://image.tmdb.org/t/p/w185"

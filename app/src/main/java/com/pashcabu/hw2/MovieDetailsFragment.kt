@@ -14,7 +14,6 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.pashcabu.hw2.data.Movie
 import com.pashcabu.hw2.recyclerAdapters.MovieDetailsActorsClickListener
 import com.pashcabu.hw2.recyclerAdapters.MovieDetailsAdapter
 
@@ -26,7 +25,7 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var pgRating: TextView
     private lateinit var title: TextView
     private lateinit var tags: TextView
-    private lateinit var rating: RatingBar
+    private lateinit var ratingBar: RatingBar
     private lateinit var reviews: TextView
     private lateinit var story: TextView
     private lateinit var castTitle: TextView
@@ -36,13 +35,13 @@ class MovieDetailsFragment : Fragment() {
     private var backButton: TextView? = null
     private var movieDetailsClickListener: MovieDetailsClickListener? = null
     private var movieDetailsActorsClickListener = object : MovieDetailsActorsClickListener {
-        override fun onActorSelected(actor: com.pashcabu.hw2.data.Actor) {
+        override fun onActorSelected(actor: CastItem?) {
             if (toast == null) {
-                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
+                toast = Toast.makeText(context, actor?.actorName, Toast.LENGTH_SHORT)
                 toast?.show()
             } else {
                 toast?.cancel()
-                toast = Toast.makeText(context, actor.name, Toast.LENGTH_SHORT)
+                toast = Toast.makeText(context, actor?.actorName, Toast.LENGTH_SHORT)
                 toast?.show()
             }
         }
@@ -50,8 +49,6 @@ class MovieDetailsFragment : Fragment() {
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener)
     private var movieID = 0
     private val viewModel: MyViewModel by viewModels()
-    private var movie: Movie? = null
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,34 +64,43 @@ class MovieDetailsFragment : Fragment() {
         movieID = arguments?.getInt(TITLE) ?: 0
         loadMovieDetailsData()
         viewModel.liveMovieDetailsData.observe(this.viewLifecycleOwner, {
-            updateData(it)
+            updateMovieData(it)
+        })
+        viewModel.liveCastData.observe(this.viewLifecycleOwner, {
+            updateActorsData(it)
         })
     }
 
     private fun loadMovieDetailsData() {
-        viewModel.loadMovieDetailsToLiveData(requireContext(), movieID)
+        viewModel.loadMovieDetailsToLiveData(movieID)
     }
 
-    private fun updateData(movie: Movie) {
+    private fun updateMovieData(movie: MovieDetailsResponse) {
         context?.let {
             Glide.with(it)
-                .load(movie.backdrop)
+                .load(imageBaseUrl + movie.backdropPath)
                 .placeholder(R.drawable.poster_big_placeholder)
                 .into(poster)
         }
-        pgRating.text = context?.resources?.getString(R.string.pg, movie.minimumAge) ?: ""
-        title.text = movie.title
-        var tagLine = ""
-        movie.let { it -> it.genres.forEach { tagLine += it.name + ", " } }
-        tags.text = tagLine
-        rating.rating = movie.ratings / 2
-        reviews.text = context?.getString(R.string.reviews, movie.numberOfRatings)
+        if (movie.adult == true) {
+            pgRating.text = context?.resources?.getString(R.string.pg, 16)
+        } else {
+            pgRating.text = context?.resources?.getString(R.string.pg, 13)
+        }
+        title.text = movie.movieTitle
+        val tagsList: List<String?> = movie.genres?.map { it?.genreName } ?: listOf()
+        tags.text = android.text.TextUtils.join(", ", tagsList)
+        ratingBar.rating = (movie.voteAverage?.div(2))?.toFloat() ?: 0f
+        reviews.text = context?.getString(R.string.reviews, movie.reviews)
         story.text = movie.overview
-        if (movie.actors.isEmpty()) {
+    }
+
+    private fun updateActorsData(actors: Cast) {
+        if (actors.castList.isNullOrEmpty()) {
             castTitle.text = getString(R.string.no_actors_data)
         }
         actorsRecyclerView.adapter = adapter
-        adapter.loadActorsData(movie.actors)
+        adapter.loadActorsData(actors)
     }
 
     private fun findViews(view: View) {
@@ -102,7 +108,7 @@ class MovieDetailsFragment : Fragment() {
         pgRating = view.findViewById(R.id.pgRating)
         title = view.findViewById(R.id.movie_title)
         tags = view.findViewById(R.id.tag_line)
-        rating = view.findViewById(R.id.rating)
+        ratingBar = view.findViewById(R.id.rating)
         reviews = view.findViewById(R.id.reviews)
         story = view.findViewById(R.id.storylineDescription)
         castTitle = view.findViewById(R.id.cast_title)
@@ -147,3 +153,5 @@ class MovieDetailsFragment : Fragment() {
     }
 
 }
+
+const val imageBaseUrl = "https://image.tmdb.org/t/p/w780"

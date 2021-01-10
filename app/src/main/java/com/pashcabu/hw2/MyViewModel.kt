@@ -1,42 +1,65 @@
 package com.pashcabu.hw2
 
-import android.content.Context
-import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pashcabu.hw2.data.Movie
-import com.pashcabu.hw2.data.loadMovie
-import com.pashcabu.hw2.data.loadMovies
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import kotlin.Exception
 
 class MyViewModel : ViewModel() {
 
-    private val mutableMoviesListData: MutableLiveData<List<Movie>> = MutableLiveData(emptyList())
-    private val mutableMovieDetailsData: MutableLiveData<Movie> = MutableLiveData()
+    private val mutableMoviesListData: MutableLiveData<List<ResultsItem?>> =
+        MutableLiveData(listOf())
+    private val mutableMovieDetailsData: MutableLiveData<MovieDetailsResponse> = MutableLiveData()
+    private val mutableCastData: MutableLiveData<Cast> = MutableLiveData()
 
-    val liveMovieListData: LiveData<List<Movie>> get() = mutableMoviesListData
-    val liveMovieDetailsData: LiveData<Movie> get() = mutableMovieDetailsData
+    val liveMovieListData: LiveData<List<ResultsItem?>> get() = mutableMoviesListData
+    val liveMovieDetailsData: LiveData<MovieDetailsResponse> get() = mutableMovieDetailsData
+    val liveCastData: LiveData<Cast> get() = mutableCastData
+    private var pageNumber = 1
+    private var genresAll: Map<Int?, String?>? = null
 
-    fun loadMoviesListToLiveData(context: Context) {
+
+    fun loadMoviesListToLiveData() {
         if (mutableMoviesListData.value.isNullOrEmpty()) {
             viewModelScope.launch {
-                val list = loadMovies(context)
-                mutableMoviesListData.value = list
+                try {
+                    val genresMap: Map<Int?, String?>? =
+                        NetworkModule().apiService.getGenres(api_key).genres?.associateBy({ it?.genreId },
+                            { it?.genreName })
+                    val listOfMovies = NetworkModule().apiService.getMoviesList(api_key, pageNumber)
+                    val output = listOfMovies.results?.map { genresIntToStrings(it, genresMap) }
+                    mutableMoviesListData.value = output
+                    genresAll = genresMap
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
-
-
     }
 
-    fun loadMovieDetailsToLiveData(context: Context, id: Int) {
+    private fun genresIntToStrings(item: ResultsItem?, map: Map<Int?, String?>?): ResultsItem? {
+        val ids = item?.genreIds
+        val genresBasedOnIds = ids?.map { map?.get(it) }
+        item?.genres = genresBasedOnIds
+        return item
+    }
+
+    fun loadMovieDetailsToLiveData(id: Int) {
         if (mutableMovieDetailsData.value == null) {
             viewModelScope.launch {
-                val movie = loadMovie(context, id)
-                mutableMovieDetailsData.value = movie
+                try {
+                    val movie = NetworkModule().apiService.getMovieDetails(id, api_key)
+                    mutableMovieDetailsData.value = movie
+                    val cast = NetworkModule().apiService.getActors(id, api_key)
+                    mutableCastData.value = cast
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
-
     }
 }

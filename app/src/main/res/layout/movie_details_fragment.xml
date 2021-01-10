@@ -14,9 +14,10 @@
             android:id="@+id/mainPoster"
             android:layout_width="@dimen/main_poster_width"
             android:layout_height="@dimen/main_poster_height"
-            android:translationX="-25dp"
+            android:translationX="0dp"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"/>
 
         <ImageView
             android:id="@+id/mainPosterMask"
@@ -105,7 +106,7 @@
             android:numStars="5"
             android:progressBackgroundTint="@color/gray_ish"
             android:progressTint="@color/pink_ish"
-            android:rating="4"
+            android:rating="0"
             android:secondaryProgressTint="@color/gray_ish"
             app:layout_constraintLeft_toRightOf="@id/paddingLeft"
             app:layout_constraintTop_toBottomOf="@id/tag_line" />
