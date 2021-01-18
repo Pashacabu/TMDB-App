@@ -3,8 +3,11 @@ package com.pashcabu.hw2
 import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
+import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.Response
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.create
 import retrofit2.http.GET
@@ -19,6 +22,9 @@ class NetworkModule {
         prettyPrint = true
         ignoreUnknownKeys = true
     }
+    private val inter = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY
+    }
 
     private val contentType = "application/json".toMediaType()
 
@@ -26,6 +32,7 @@ class NetworkModule {
         .connectTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
+        .addInterceptor(inter)
         .build()
 
     private val retrofit = Retrofit.Builder()
@@ -43,8 +50,9 @@ class NetworkModule {
             @Query("api_key") api_key: String
         ): MovieDetailsResponse
 
-        @GET("movie/now_playing")
+        @GET("movie/{endPoint}")
         suspend fun getMoviesList(
+            @Path("endPoint") endpoint: String?,
             @Query("api_key") api_key: String,
             @Query("page") page: Int
         ): MovieListResponse
@@ -57,5 +65,13 @@ class NetworkModule {
 
     }
 }
+
+//class MyInterceptor() :Interceptor{
+//    override fun intercept(chain: Interceptor.Chain): Response {
+//        val request = chain.request()
+//        Log.d("Interceptor", request.body.toString())
+//    }
+//
+//}
 
 const val api_key = "690d3ea0f7ef1f69512be4c95fc7a886"

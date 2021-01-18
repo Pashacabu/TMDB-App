@@ -11,4 +11,15 @@
     <string name="starring">%1$s as %2$s</string>
     <string name="no_actors_data">No cast data available</string>
 
+    <string-array name="tabs">
+        <item>Latest</item>
+        <item>Now playing</item>
+        <item>Popular</item>
+        <item>Top Rated</item>
+        <item>Upcoming</item>
+    </string-array>
+
+
+
+
 </resources>

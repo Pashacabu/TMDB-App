@@ -5,10 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.RatingBar
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -30,6 +29,7 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var story: TextView
     private lateinit var castTitle: TextView
     private lateinit var actorsRecyclerView: RecyclerView
+    private lateinit var loadingIndicator : ProgressBar
     private var toast: Toast? = null
     private var backArrow: ImageView? = null
     private var backButton: TextView? = null
@@ -48,6 +48,7 @@ class MovieDetailsFragment : Fragment() {
     }
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener)
     private var movieID = 0
+//    private var endpoint = ""
     private val viewModel: MyViewModel by viewModels()
 
     override fun onCreateView(
@@ -62,13 +63,27 @@ class MovieDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         findViews(view)
         movieID = arguments?.getInt(TITLE) ?: 0
+//        endpoint = arguments?.getString(ENDPOINT) ?: ""
+//        if (movieID==0&&endpoint!=""){
+//            viewModel.loadLiveData(endpoint)
+//        } else if (movieID!=0&&endpoint==""){
+//            loadMovieDetailsData()
+//        }
         loadMovieDetailsData()
-        viewModel.liveMovieDetailsData.observe(this.viewLifecycleOwner, {
+        viewModel.loadingState.observe(this.viewLifecycleOwner, {
+            showLoadingIndicator(it)
+        })
+        viewModel.movieDetailsData.observe(this.viewLifecycleOwner, {
             updateMovieData(it)
         })
-        viewModel.liveCastData.observe(this.viewLifecycleOwner, {
+        viewModel.castData.observe(this.viewLifecycleOwner, {
             updateActorsData(it)
         })
+    }
+
+    private fun showLoadingIndicator(loadingState: Boolean) {
+        loadingIndicator.isVisible=loadingState
+        loadingIndicator.isInvisible=!loadingState
     }
 
     private fun loadMovieDetailsData() {
@@ -122,6 +137,7 @@ class MovieDetailsFragment : Fragment() {
         actorsRecyclerView.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         actorsRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 5))
+        loadingIndicator = view.findViewById(R.id.movie_details_loading_indicator)
     }
 
     override fun onAttach(context: Context) {
@@ -141,15 +157,17 @@ class MovieDetailsFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(movieID: Int): MovieDetailsFragment {
+        fun newInstance(endpoint : String, movieID: Int): MovieDetailsFragment {
             val arg = Bundle()
             arg.putInt(TITLE, movieID)
+            arg.putString(ENDPOINT, endpoint)
             val fragment = MovieDetailsFragment()
             fragment.arguments = arg
             return fragment
         }
 
         const val TITLE = "movieTitle"
+        const val ENDPOINT = "endPoint"
     }
 
 }
