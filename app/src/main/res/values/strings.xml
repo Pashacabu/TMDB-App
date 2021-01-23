@@ -10,6 +10,7 @@
     <string name="duration">%d MIN</string>
     <string name="starring">%1$s as %2$s</string>
     <string name="no_actors_data">No cast data available</string>
+    <string name="refresh_button">Refresh</string>
 
     <string-array name="tabs">
         <item>Latest</item>

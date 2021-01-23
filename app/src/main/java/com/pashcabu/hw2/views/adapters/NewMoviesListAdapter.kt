@@ -1,4 +1,4 @@
-package com.pashcabu.hw2.recyclerAdapters
+package com.pashcabu.hw2.views.adapters
 
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,7 +15,7 @@ import com.bumptech.glide.Glide
 import com.pashcabu.hw2.MoviesListFragment
 import com.pashcabu.hw2.MyViewModel
 import com.pashcabu.hw2.R
-import com.pashcabu.hw2.ResultsItem
+import com.pashcabu.hw2.model.data_classes.ResultsItem
 
 class NewMoviesListAdapter(
     private val openMovieListener: MoviesListClickListener
@@ -50,11 +50,10 @@ class NewMoviesListAdapter(
     fun loadMovies(newMovies: List<ResultsItem?>) {
         val callback = MoviesDiffCallback(this.list, newMovies)
         val result = DiffUtil.calculateDiff(callback)
-//        list.clear()
+        list.clear()
         list.addAll(newMovies)
         result.dispatchUpdatesTo(this)
     }
-
 
 }
 
@@ -72,7 +71,6 @@ class MyScrollListener() : RecyclerView.OnScrollListener() {
 //                    MyViewModel().loadMoreMovies()
 
                 }
-
             }
         }
     }
@@ -84,6 +82,7 @@ class NewMoviesListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     private val rating: RatingBar = view.findViewById(R.id.rating)
     private val tagLine: TextView = view.findViewById(R.id.tag_line)
     private val reviews: TextView = view.findViewById(R.id.reviews)
+
 
     //        private val duration: TextView = view.findViewById(R.id.duration)
     private val poster: ImageView = view.findViewById(R.id.poster_image)
@@ -105,6 +104,10 @@ class NewMoviesListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             .placeholder(R.drawable.poster_small_placeholder)
             .into(poster)
     }
+
+    companion object {
+        const val imageBaseUrl = "https://image.tmdb.org/t/p/w185"
+    }
 }
 
 class MoviesDiffCallback(
@@ -112,13 +115,10 @@ class MoviesDiffCallback(
     private val newList: List<ResultsItem?>?
 ) : DiffUtil.Callback() {
     override fun getOldListSize(): Int {
-//        Log.d("ADAPTER", "old list size is ${oldList?.size}")
         return oldList?.size ?: 0
-
     }
 
     override fun getNewListSize(): Int {
-//        Log.d("ADAPTER", "new list size is ${newList?.size}")
         return newList?.size ?: 0
     }
 
@@ -131,11 +131,8 @@ class MoviesDiffCallback(
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
         return oldList?.get(oldItemPosition) == newList?.get(newItemPosition)
     }
-
-
 }
 
-const val imageBaseUrl = "https://image.tmdb.org/t/p/w185"
 
 interface MoviesListClickListener {
     fun onMovieSelected(movieID: Int, title: String)

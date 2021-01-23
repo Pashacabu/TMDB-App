@@ -1,12 +1,13 @@
-package com.pashcabu.hw2
+package com.pashcabu.hw2.model
 
-import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.pashcabu.hw2.model.data_classes.Cast
+import com.pashcabu.hw2.model.data_classes.GenresResponse
+import com.pashcabu.hw2.model.data_classes.MovieDetailsResponse
+import com.pashcabu.hw2.model.data_classes.MovieListResponse
 import kotlinx.serialization.json.Json
-import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.create
@@ -17,19 +18,19 @@ import java.util.concurrent.TimeUnit
 
 class NetworkModule {
 
-    private val baseUrl = "https://api.themoviedb.org/3/"
+
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
     }
     private val inter = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
+        level = HttpLoggingInterceptor.Level.BASIC
     }
 
     private val contentType = "application/json".toMediaType()
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(5, TimeUnit.SECONDS)
         .writeTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
         .addInterceptor(inter)
@@ -64,14 +65,9 @@ class NetworkModule {
         suspend fun getActors(@Path("movieID") id: Int, @Query("api_key") api_key: String): Cast
 
     }
+
+    companion object {
+        const val api_key = "690d3ea0f7ef1f69512be4c95fc7a886"
+        private const val baseUrl = "https://api.themoviedb.org/3/"
+    }
 }
-
-//class MyInterceptor() :Interceptor{
-//    override fun intercept(chain: Interceptor.Chain): Response {
-//        val request = chain.request()
-//        Log.d("Interceptor", request.body.toString())
-//    }
-//
-//}
-
-const val api_key = "690d3ea0f7ef1f69512be4c95fc7a886"

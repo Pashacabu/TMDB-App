@@ -1,4 +1,4 @@
-package com.pashcabu.hw2
+package com.pashcabu.hw2.model.data_classes
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

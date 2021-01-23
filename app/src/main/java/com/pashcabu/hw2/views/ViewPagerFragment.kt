@@ -1,4 +1,4 @@
-package com.pashcabu.hw2
+package com.pashcabu.hw2.views
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.pashcabu.hw2.R
 
 class ViewPagerFragment : Fragment() {
 
@@ -31,7 +32,7 @@ class ViewPagerFragment : Fragment() {
         val vPAdapter = MoviesListFragment.ScreenSlide(this)
         viewPager?.adapter = vPAdapter
         TabLayoutMediator(tabLayout, viewPager as ViewPager2) {tab, position ->
-            tab.text = tabs[position]
+            tab.text = tabs[position+1]
         }.attach()
     }
 

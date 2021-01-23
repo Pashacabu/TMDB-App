@@ -1,4 +1,4 @@
-package com.pashcabu.hw2.recyclerAdapters
+package com.pashcabu.hw2.views.adapters
 
 
 import android.view.LayoutInflater
@@ -8,8 +8,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.pashcabu.hw2.Cast
-import com.pashcabu.hw2.CastItem
+import com.pashcabu.hw2.model.data_classes.Cast
+import com.pashcabu.hw2.model.data_classes.CastItem
 import com.pashcabu.hw2.R
 
 
@@ -56,10 +56,13 @@ class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             .into(actorPhoto)
         actorName.text = context.getString(R.string.starring, actor?.actorName, actor?.character)
     }
+companion object{
+    private const val baseImageUrl = "https://image.tmdb.org/t/p/w185"
+}
 }
 
 interface MovieDetailsActorsClickListener {
     fun onActorSelected(actor: CastItem?)
 }
 
-const val baseImageUrl = "https://image.tmdb.org/t/p/w185"
+

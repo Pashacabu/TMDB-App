@@ -1,4 +1,4 @@
-package com.pashcabu.hw2
+package com.pashcabu.hw2.views
 
 import android.graphics.Rect
 import android.util.DisplayMetrics

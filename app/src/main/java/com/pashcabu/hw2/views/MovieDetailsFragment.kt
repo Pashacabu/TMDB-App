@@ -1,4 +1,4 @@
-package com.pashcabu.hw2
+package com.pashcabu.hw2.views
 
 import android.content.Context
 import android.os.Bundle
@@ -12,12 +12,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
-import com.pashcabu.hw2.recyclerAdapters.MovieDetailsActorsClickListener
-import com.pashcabu.hw2.recyclerAdapters.MovieDetailsAdapter
+import com.pashcabu.hw2.*
+import com.pashcabu.hw2.model.data_classes.Cast
+import com.pashcabu.hw2.model.data_classes.CastItem
+import com.pashcabu.hw2.model.data_classes.MovieDetailsResponse
+import com.pashcabu.hw2.views.adapters.MovieDetailsActorsClickListener
+import com.pashcabu.hw2.views.adapters.MovieDetailsAdapter
+import com.pashcabu.hw2.view_model.MyViewModel
 
 
-class MovieDetailsFragment : Fragment() {
+class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
 
     private lateinit var poster: ImageView
@@ -29,7 +35,7 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var story: TextView
     private lateinit var castTitle: TextView
     private lateinit var actorsRecyclerView: RecyclerView
-    private lateinit var loadingIndicator : ProgressBar
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private var toast: Toast? = null
     private var backArrow: ImageView? = null
     private var backButton: TextView? = null
@@ -48,7 +54,6 @@ class MovieDetailsFragment : Fragment() {
     }
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener)
     private var movieID = 0
-//    private var endpoint = ""
     private val viewModel: MyViewModel by viewModels()
 
     override fun onCreateView(
@@ -63,12 +68,6 @@ class MovieDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         findViews(view)
         movieID = arguments?.getInt(TITLE) ?: 0
-//        endpoint = arguments?.getString(ENDPOINT) ?: ""
-//        if (movieID==0&&endpoint!=""){
-//            viewModel.loadLiveData(endpoint)
-//        } else if (movieID!=0&&endpoint==""){
-//            loadMovieDetailsData()
-//        }
         loadMovieDetailsData()
         viewModel.loadingState.observe(this.viewLifecycleOwner, {
             showLoadingIndicator(it)
@@ -82,18 +81,21 @@ class MovieDetailsFragment : Fragment() {
     }
 
     private fun showLoadingIndicator(loadingState: Boolean) {
-        loadingIndicator.isVisible=loadingState
-        loadingIndicator.isInvisible=!loadingState
+        swipeRefresh.isRefreshing = loadingState
     }
 
     private fun loadMovieDetailsData() {
         viewModel.loadMovieDetailsToLiveData(movieID)
     }
 
+    private fun refreshMovieDetailData() {
+        viewModel.refreshMovieDetailsData(movieID)
+    }
+
     private fun updateMovieData(movie: MovieDetailsResponse) {
         context?.let {
             Glide.with(it)
-                .load(imageBaseUrl + movie.backdropPath)
+                .load(imageBigBaseUrl + movie.backdropPath)
                 .placeholder(R.drawable.poster_big_placeholder)
                 .into(poster)
         }
@@ -119,6 +121,8 @@ class MovieDetailsFragment : Fragment() {
     }
 
     private fun findViews(view: View) {
+        swipeRefresh = view.findViewById(R.id.details_swipe_refresh)
+        swipeRefresh.setOnRefreshListener(this)
         poster = view.findViewById(R.id.mainPoster)
         pgRating = view.findViewById(R.id.pgRating)
         title = view.findViewById(R.id.movie_title)
@@ -137,7 +141,6 @@ class MovieDetailsFragment : Fragment() {
         actorsRecyclerView.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         actorsRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 5))
-        loadingIndicator = view.findViewById(R.id.movie_details_loading_indicator)
     }
 
     override fun onAttach(context: Context) {
@@ -157,7 +160,7 @@ class MovieDetailsFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(endpoint : String, movieID: Int): MovieDetailsFragment {
+        fun newInstance(endpoint: String, movieID: Int): MovieDetailsFragment {
             val arg = Bundle()
             arg.putInt(TITLE, movieID)
             arg.putString(ENDPOINT, endpoint)
@@ -167,9 +170,16 @@ class MovieDetailsFragment : Fragment() {
         }
 
         const val TITLE = "movieTitle"
-        const val ENDPOINT = "endPoint"
+        private const val ENDPOINT = "endPoint"
+        private const val imageBigBaseUrl = "https://image.tmdb.org/t/p/w780"
+    }
+
+    override fun onRefresh() {
+        swipeRefresh.isRefreshing = true
+        refreshMovieDetailData()
+        swipeRefresh.isRefreshing = false
+
     }
 
 }
 
-const val imageBaseUrl = "https://image.tmdb.org/t/p/w780"
