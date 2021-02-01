@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".views.ViewPagerFragment"
+    android:background="@color/background"
+    android:orientation="vertical">
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/gray_ish"
+        app:tabMode="auto"
+        app:tabBackground="@color/background"
+        app:tabInlineLabel="true"
+        app:tabSelectedTextColor="@color/white"
+        app:tabTextColor="@color/gray_ish"
+        app:tabIndicatorColor="@color/white"
+        />
+    <androidx.viewpager2.widget.ViewPager2
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/movies_list_viewpager"
+        />
+
+</LinearLayout>

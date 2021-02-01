@@ -5,11 +5,22 @@
     <string name="cast">Cast</string>
     <string name="moviesList">Movies List</string>
 
-
     <string name="pg">%d+</string>
     <string name="reviews">%d Reviews</string>
     <string name="duration">%d MIN</string>
+    <string name="starring">%1$s as %2$s</string>
     <string name="no_actors_data">No cast data available</string>
+    <string name="refresh_button">Refresh</string>
+
+    <string-array name="tabs">
+        <item>Latest</item>
+        <item>Now playing</item>
+        <item>Popular</item>
+        <item>Top Rated</item>
+        <item>Upcoming</item>
+    </string-array>
+
+
 
 
 </resources>
