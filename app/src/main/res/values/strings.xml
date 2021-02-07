@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HW5</string>
+    <string name="app_name">HW8</string>
     <string name="back">Back</string>
     <string name="storylineHeader">Storyline</string>
     <string name="cast">Cast</string>
@@ -11,6 +11,7 @@
     <string name="starring">%1$s as %2$s</string>
     <string name="no_actors_data">No cast data available</string>
     <string name="refresh_button">Refresh</string>
+    <string name="offline_data_pull_down_to_refresh">Offline data, pull down to refresh...</string>
 
     <string-array name="tabs">
         <item>Latest</item>
@@ -18,6 +19,7 @@
         <item>Popular</item>
         <item>Top Rated</item>
         <item>Upcoming</item>
+        <item>Favourite</item>
     </string-array>
 
 

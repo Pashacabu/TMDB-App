@@ -6,21 +6,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.pashcabu.hw2.*
-import com.pashcabu.hw2.model.data_classes.Cast
-import com.pashcabu.hw2.model.data_classes.CastItem
-import com.pashcabu.hw2.model.data_classes.MovieDetailsResponse
+import com.pashcabu.hw2.model.data_classes.networkResponses.CastResponse
+import com.pashcabu.hw2.model.data_classes.networkResponses.CastItem
+import com.pashcabu.hw2.model.data_classes.Database
+import com.pashcabu.hw2.model.data_classes.networkResponses.MovieDetailsResponse
+import com.pashcabu.hw2.view_model.MovieDetailsViewModel
 import com.pashcabu.hw2.views.adapters.MovieDetailsActorsClickListener
 import com.pashcabu.hw2.views.adapters.MovieDetailsAdapter
-import com.pashcabu.hw2.view_model.MyViewModel
+import com.pashcabu.hw2.view_model.MyViewModelFactory
 
 
 class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
@@ -54,14 +54,26 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener)
     private var movieID = 0
-    private val viewModel: MyViewModel by viewModels()
+    private lateinit var viewModel: MovieDetailsViewModel
+    private lateinit var roomDB : Database
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        roomDB= Database.createDB(requireContext())
+        val factory = MyViewModelFactory.MoviesDetailsViewModelFactory(roomDB)
+        viewModel=ViewModelProvider(this, factory).get(MovieDetailsViewModel::class.java)
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.movie_details_fragment, container, false)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        toast?.cancel()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -85,7 +97,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun loadMovieDetailsData() {
-        viewModel.loadMovieDetailsToLiveData(movieID)
+        viewModel.loadData(movieID)
     }
 
     private fun refreshMovieDetailData() {
@@ -112,9 +124,11 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         story.text = movie.overview
     }
 
-    private fun updateActorsData(actors: Cast) {
+    private fun updateActorsData(actors: CastResponse) {
         if (actors.castList.isNullOrEmpty()) {
             castTitle.text = getString(R.string.no_actors_data)
+        } else {
+            castTitle.text= getString(R.string.cast)
         }
         actorsRecyclerView.adapter = adapter
         adapter.loadActorsData(actors)
@@ -175,9 +189,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     override fun onRefresh() {
-        swipeRefresh.isRefreshing = true
         refreshMovieDetailData()
-        swipeRefresh.isRefreshing = false
 
     }
 

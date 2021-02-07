@@ -8,8 +8,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.pashcabu.hw2.model.data_classes.Cast
-import com.pashcabu.hw2.model.data_classes.CastItem
+import com.pashcabu.hw2.model.data_classes.networkResponses.CastResponse
+import com.pashcabu.hw2.model.data_classes.networkResponses.CastItem
 import com.pashcabu.hw2.R
 
 
@@ -38,7 +38,7 @@ class MovieDetailsAdapter(private var movieDetailsActorsClickListener: MovieDeta
         return actors?.size ?: 0
     }
 
-    fun loadActorsData(cast: Cast) {
+    fun loadActorsData(cast: CastResponse) {
         actors = cast.castList
     }
 }
@@ -56,9 +56,10 @@ class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             .into(actorPhoto)
         actorName.text = context.getString(R.string.starring, actor?.actorName, actor?.character)
     }
-companion object{
-    private const val baseImageUrl = "https://image.tmdb.org/t/p/w185"
-}
+
+    companion object {
+        private const val baseImageUrl = "https://image.tmdb.org/t/p/w185"
+    }
 }
 
 interface MovieDetailsActorsClickListener {

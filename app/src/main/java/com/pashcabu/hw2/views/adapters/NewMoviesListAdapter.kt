@@ -1,6 +1,5 @@
 package com.pashcabu.hw2.views.adapters
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,16 +11,14 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.pashcabu.hw2.MoviesListFragment
-import com.pashcabu.hw2.MyViewModel
 import com.pashcabu.hw2.R
-import com.pashcabu.hw2.model.data_classes.ResultsItem
+import com.pashcabu.hw2.model.data_classes.networkResponses.Movie
 
 class NewMoviesListAdapter(
-    private val openMovieListener: MoviesListClickListener
+    private val openMovieListener: MoviesListClickListener,
 ) : RecyclerView.Adapter<NewMoviesListViewHolder>() {
 
-    private val list = ArrayList<ResultsItem?>()
+    private val list = ArrayList<Movie?>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewMoviesListViewHolder {
         return NewMoviesListViewHolder(
@@ -41,13 +38,24 @@ class NewMoviesListAdapter(
                 }
             }
         }
+        holder.inFavourite.setOnClickListener {
+
+            if (list[holder.adapterPosition]?.addedToFavourite == false) {
+                holder.inFavourite.setImageResource(R.drawable.like_positive)
+            } else {
+                holder.inFavourite.setImageResource(R.drawable.like)
+            }
+            list[holder.adapterPosition]?.let { it1 ->
+                openMovieListener.onMovieLiked(it1)
+            }
+        }
     }
 
     override fun getItemCount(): Int {
         return list.size
     }
 
-    fun loadMovies(newMovies: List<ResultsItem?>) {
+    fun loadMovies(newMovies: List<Movie?>) {
         val callback = MoviesDiffCallback(this.list, newMovies)
         val result = DiffUtil.calculateDiff(callback)
         list.clear()
@@ -82,18 +90,24 @@ class NewMoviesListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     private val rating: RatingBar = view.findViewById(R.id.rating)
     private val tagLine: TextView = view.findViewById(R.id.tag_line)
     private val reviews: TextView = view.findViewById(R.id.reviews)
+    val inFavourite: ImageView = view.findViewById(R.id.like)
 
 
     //        private val duration: TextView = view.findViewById(R.id.duration)
     private val poster: ImageView = view.findViewById(R.id.poster_image)
     private val context = view.context
 
-    fun onBindMovieData(movie: ResultsItem?) {
+    fun onBindMovieData(movie: Movie?) {
         title.text = movie?.title
         if (movie?.adult == true) {
             pgRating.text = context.resources.getString(R.string.pg, 16)
         } else {
             pgRating.text = context.resources.getString(R.string.pg, 13)
+        }
+        if (movie?.addedToFavourite == true) {
+            inFavourite.setImageResource(R.drawable.like_positive)
+        } else {
+            inFavourite.setImageResource(R.drawable.like)
         }
         rating.rating = (movie?.voteAverage?.div(2))?.toFloat() ?: 0f
         tagLine.text = movie?.genres?.let { android.text.TextUtils.join(", ", it) }
@@ -111,8 +125,8 @@ class NewMoviesListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 }
 
 class MoviesDiffCallback(
-    private val oldList: List<ResultsItem?>?,
-    private val newList: List<ResultsItem?>?
+    private val oldList: List<Movie?>?,
+    private val newList: List<Movie?>?
 ) : DiffUtil.Callback() {
     override fun getOldListSize(): Int {
         return oldList?.size ?: 0
@@ -136,4 +150,5 @@ class MoviesDiffCallback(
 
 interface MoviesListClickListener {
     fun onMovieSelected(movieID: Int, title: String)
+    fun onMovieLiked(movie: Movie)
 }
