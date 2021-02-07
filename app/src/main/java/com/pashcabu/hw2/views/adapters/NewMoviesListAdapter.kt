@@ -1,5 +1,6 @@
 package com.pashcabu.hw2.views.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -65,7 +66,7 @@ class NewMoviesListAdapter(
 
 }
 
-class MyScrollListener() : RecyclerView.OnScrollListener() {
+class MyScrollListener(private val callback:() -> Unit) : RecyclerView.OnScrollListener() {
     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
         super.onScrolled(recyclerView, dx, dy)
         if (dy > 0) {
@@ -74,10 +75,7 @@ class MyScrollListener() : RecyclerView.OnScrollListener() {
             val totalItems = recyclerView.adapter?.itemCount
             if (totalItems != null) {
                 if (lastVisible == totalItems - 1) {
-                    Log.d("Adapter", "its time to load more")
-                    MyViewModel().showLoading()
-//                    MyViewModel().loadMoreMovies()
-
+                    callback()
                 }
             }
         }

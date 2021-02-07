@@ -169,6 +169,7 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
             viewModelScope.launch {
                 try {
                     loadedList.clear()
+                    clearDBTable(endpoint)
                     loadFromAPI(endpoint, currentPage)
                 } catch (e: Exception) {
                     showError()

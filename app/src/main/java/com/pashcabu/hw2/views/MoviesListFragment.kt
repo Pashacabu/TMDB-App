@@ -12,8 +12,17 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.pashcabu.hw2.recyclerAdapters.*
+import com.pashcabu.hw2.R
+import com.pashcabu.hw2.model.data_classes.Database
+import com.pashcabu.hw2.model.data_classes.networkResponses.Movie
+import com.pashcabu.hw2.view_model.MoviesListViewModel
+import com.pashcabu.hw2.view_model.MyViewModelFactory
+import com.pashcabu.hw2.view_model.NO_ERROR
+import com.pashcabu.hw2.views.adapters.MoviesListClickListener
+import com.pashcabu.hw2.views.adapters.MyScrollListener
+import com.pashcabu.hw2.views.adapters.NewMoviesListAdapter
 
 class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
