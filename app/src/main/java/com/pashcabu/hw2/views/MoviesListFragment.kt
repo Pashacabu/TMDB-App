@@ -15,8 +15,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.pashcabu.hw2.R
+import com.pashcabu.hw2.model.ConnectionChecker
 import com.pashcabu.hw2.model.data_classes.Database
 import com.pashcabu.hw2.model.data_classes.networkResponses.Movie
+import com.pashcabu.hw2.view_model.ConnectionViewModel
 import com.pashcabu.hw2.view_model.MoviesListViewModel
 import com.pashcabu.hw2.view_model.MyViewModelFactory
 import com.pashcabu.hw2.view_model.NO_ERROR
@@ -30,8 +32,8 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private var openMovieListener: MoviesListClickListener = object : MoviesListClickListener {
         override fun onMovieSelected(movieID: Int, title: String) {
             activity?.supportFragmentManager?.beginTransaction()
-                ?.add(R.id.fragment_container, MovieDetailsFragment.newInstance("", movieID))
-                ?.addToBackStack(title)?.commit()
+                    ?.add(R.id.fragment_container, MovieDetailsFragment.newInstance("", movieID))
+                    ?.addToBackStack(title)?.commit()
         }
 
         override fun onMovieLiked(movie: Movie) {
@@ -40,20 +42,22 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private var adapter = NewMoviesListAdapter(openMovieListener)
-    private var moviesListRecyclerView: RecyclerView? = null
-    private var swipeRefreshLayout: SwipeRefreshLayout? = null
-    private var offlineWarning: TextView? = null
+    private lateinit var moviesListRecyclerView: RecyclerView
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var offlineWarning: TextView
     private lateinit var roomDB: Database
     private lateinit var viewModel: MoviesListViewModel
+    private lateinit var connectionViewModel: ConnectionViewModel
     private var endpoint: String? = null
     private var currentPage: Int = 1
     private var totalPages: Int = 0
     private var toast: Toast? = null
+    private var connectionChecker: ConnectionChecker? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.movies_list_fragment, container, false)
     }
@@ -61,9 +65,9 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     private fun findViews(view: View) {
         moviesListRecyclerView = view.findViewById(R.id.movies_list_recycler_view)
-        moviesListRecyclerView?.setHasFixedSize(true)
+        moviesListRecyclerView.setHasFixedSize(true)
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh)
-        swipeRefreshLayout?.setOnRefreshListener {
+        swipeRefreshLayout.setOnRefreshListener {
             refreshData()
         }
         offlineWarning = view.findViewById(R.id.offline_warning)
@@ -72,13 +76,13 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private fun setUpAdapter(view: View) {
         val orientation = view.context.resources.configuration.orientation
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            moviesListRecyclerView?.layoutManager = GridLayoutManager(context, 2)
-            moviesListRecyclerView?.addItemDecoration(Decorator().itemSpacing(view, 7))
+            moviesListRecyclerView.layoutManager = GridLayoutManager(context, 2)
+            moviesListRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 7))
         } else {
-            moviesListRecyclerView?.layoutManager = GridLayoutManager(context, 3)
-            moviesListRecyclerView?.addItemDecoration(Decorator().itemSpacing(view, 14))
+            moviesListRecyclerView.layoutManager = GridLayoutManager(context, 3)
+            moviesListRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 14))
         }
-        moviesListRecyclerView?.adapter = adapter
+        moviesListRecyclerView.adapter = adapter
     }
 
     private fun loadData(endpoint: String?) {
@@ -89,8 +93,10 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         super.onCreate(savedInstanceState)
         roomDB = Database.createDB(requireContext())
         val factory = MyViewModelFactory.MoviesListViewModelFactory(roomDB)
+        val factoryConnection = MyViewModelFactory.ConnectionViewModelfactory()
         viewModel = ViewModelProvider(this, factory).get(MoviesListViewModel::class.java)
-
+        connectionViewModel = ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
+        connectionChecker = ConnectionChecker(requireContext())
     }
 
     override fun onResume() {
@@ -111,12 +117,11 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     private fun subscribeLiveData() {
         val stateObserver = Observer<Boolean> {
-            swipeRefreshLayout?.isRefreshing = it
+            swipeRefreshLayout.isRefreshing = it
         }
         val listObserver = Observer<List<Movie?>> {
             it?.let { it1 ->
                 adapter.loadMovies(it1)
-//            viewModel.saveToDB(endpoint, it)
             }
         }
         val pagesObserver = Observer<Int> {
@@ -124,7 +129,6 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         }
         val errorsObserver = Observer<String> {
             if (it != NO_ERROR) {
-                offlineWarning?.visibility = View.VISIBLE
                 if (toast == null) {
                     toast = Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT)
                     toast?.show()
@@ -133,13 +137,27 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                     toast = Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT)
                     toast?.show()
                 }
-            } else offlineWarning?.visibility = View.GONE
-
+            }
+        }
+        val connectionObserver = Observer<Boolean> {
+            viewModel.setConnectionState(it)
+            if (it) {
+                offlineWarning.visibility = View.GONE
+            } else {
+                offlineWarning.visibility = View.VISIBLE
+            }
         }
         viewModel.loadingState.observe(this.viewLifecycleOwner, stateObserver)
         viewModel.movieList.observe(this.viewLifecycleOwner, listObserver)
         viewModel.amountOfPages.observe(this.viewLifecycleOwner, pagesObserver)
         viewModel.errorState.observe(this.viewLifecycleOwner, errorsObserver)
+        viewModel.pageStepBack.observe(this.viewLifecycleOwner, {
+            currentPage += it
+        })
+        connectionChecker?.observe(this.viewLifecycleOwner, {
+            connectionViewModel.setConnectionState(it)
+        })
+        connectionViewModel.connectionState.observe(this.viewLifecycleOwner, connectionObserver)
     }
 
     private fun addLoadMoreListener() {
@@ -149,12 +167,12 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                 if (currentPage <= totalPages) {
                     viewModel.loadMore(endpoint, currentPage)
                 } else Toast.makeText(this.context, "No more pages to load!", Toast.LENGTH_SHORT)
-                    .show()
+                        .show()
             } else Toast.makeText(this.context, "No pages to load!", Toast.LENGTH_SHORT)
-                .show()
+                    .show()
         }
         if (endpoint != FAVOURITE) {
-            moviesListRecyclerView?.addOnScrollListener(listener)
+            moviesListRecyclerView.addOnScrollListener(listener)
         }
 
     }
@@ -170,9 +188,9 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     override fun onRefresh() {
-        swipeRefreshLayout?.isRefreshing = true
+        swipeRefreshLayout.isRefreshing = true
         refreshData()
-        swipeRefreshLayout?.isRefreshing = false
+        swipeRefreshLayout.isRefreshing = false
     }
 
     override fun onPause() {

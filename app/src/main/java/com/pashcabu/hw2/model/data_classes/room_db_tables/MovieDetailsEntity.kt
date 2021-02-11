@@ -24,10 +24,8 @@ class DBMovieDetails(
     var genreName: String? = null,
     @ColumnInfo(name = "genreID")
     var genreId: Int? = null,
-//    var genres: List<GenresItem?>? = null,
     @ColumnInfo(name = "popularity")
     var popularity: Double? = null,
-//    val productionCountries: List<ProductionCountriesItem?>? = null,
     @ColumnInfo(name = "reviews")
     var reviews: Int? = null,
     @ColumnInfo(name = "budget")
@@ -40,8 +38,6 @@ class DBMovieDetails(
     var runtime: Int? = null,
     @ColumnInfo(name = "poster")
     var posterPath: String? = null,
-//    val spokenLanguages: List<SpokenLanguagesItem?>? = null,
-//    val productionCompanies: List<ProductionCompaniesItem?>? = null,
     @ColumnInfo(name = "releaseDate")
     var releaseDate: String? = null,
     @ColumnInfo(name = "voteAVR")
@@ -57,13 +53,12 @@ class DBMovieDetails(
 )
 
 @Entity(
-    tableName = "CastDetails"
+    tableName = "CastDetails",
+        primaryKeys = ["movieID", "id"]
 )
 data class DBCastItem(
-    @PrimaryKey(autoGenerate = true)
-    val roomID: Int = 0,
     @ColumnInfo(name = "movieID")
-    var movieId: Int? = null,
+    var movieId: Int = null ?: 0,
     @ColumnInfo(name = "castID")
     var castId: Int? = null,
     @ColumnInfo(name = "character")
@@ -83,19 +78,18 @@ data class DBCastItem(
     @ColumnInfo(name = "photo")
     var actorPhoto: String? = null,
     @ColumnInfo(name = "id")
-    var id: Int? = null,
+    var id: Int = null ?: 0,
     @ColumnInfo(name = "adult")
     var adult: Boolean? = null,
     @ColumnInfo(name = "order")
     var order: Int? = null
 )
 
-@Entity(tableName = "CrewDetails")
+@Entity(tableName = "CrewDetails",
+primaryKeys = ["movieID", "id"])
 data class DBCrewItem(
-    @PrimaryKey(autoGenerate = true)
-    var roomID: Int = 0,
     @ColumnInfo(name = "movieID")
-    var movieId: Int? = null,
+    var movieId: Int = 0,
     @ColumnInfo(name = "gender")
     var gender: Int? = null,
     @ColumnInfo(name = "creditID")
@@ -111,7 +105,7 @@ data class DBCrewItem(
     @ColumnInfo(name = "profile")
     var profilePath: String? = null,
     @ColumnInfo(name = "id")
-    var id: Int? = null,
+    var id: Int = 0,
     @ColumnInfo(name = "adult")
     var adult: Boolean? = null,
     @ColumnInfo(name = "department")

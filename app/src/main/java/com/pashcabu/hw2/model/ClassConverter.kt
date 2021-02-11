@@ -71,7 +71,7 @@ class ClassConverter {
     fun genresListRespToEntity(list: List<GenresListItem?>): List<GenresEntity?> {
         val output = mutableListOf<GenresEntity>()
         for (i in list) {
-            genreResponseToEntity(i)?.let { output.add(it) }
+            genreResponseToEntity(i).let { output.add(it) }
         }
         return output
     }
@@ -79,7 +79,7 @@ class ClassConverter {
     fun genresListEntityToResp(list: List<GenresEntity?>): List<GenresListItem?> {
         val output = mutableListOf<GenresListItem>()
         for (i in list) {
-            genreEntityToResponse(i)?.let { output.add(it) }
+            genreEntityToResponse(i).let { output.add(it) }
         }
         return output
     }
@@ -144,7 +144,7 @@ class ClassConverter {
         output.character = item.character
         output.creditId = item.creditId
         output.gender = item.gender
-        output.id = item.id
+        output.id = item.id ?:0
         output.knownForDepartment = item.knownForDepartment
         output.order = item.order
         output.originalName = item.originalName
@@ -179,11 +179,11 @@ class ClassConverter {
         return output
     }
 
-    fun castEntityListToResponseList(list: List<DBCastItem>): MutableList<CastItem?>? {
+    fun castEntityListToResponseList(list: List<DBCastItem>): MutableList<CastItem?> {
         val output = CastResponse()
         val castList: MutableList<CastItem?> = mutableListOf<CastItem?>()
         for (item in list) {
-            castList?.add(castEntityToResponse(item))
+            castList.add(castEntityToResponse(item))
         }
         output.castList = castList
         return castList
@@ -195,7 +195,7 @@ class ClassConverter {
         output.creditId = item.creditId
         output.department = item.department
         output.gender = item.gender
-        output.id = item.id
+        output.id = item.id ?:0
         output.job = item.job
         output.knownForDepartment = item.knownForDepartment
         output.name = item.name

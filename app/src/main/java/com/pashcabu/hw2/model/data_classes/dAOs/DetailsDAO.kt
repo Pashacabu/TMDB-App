@@ -25,4 +25,18 @@ interface DetailsDAO {
 
     @Query("SELECT * FROM CrewDetails WHERE movieID = :id")
     suspend fun getCrew(id: Int): List<DBCrewItem>
+
+    @Query("DELETE FROM MovieDetails")
+    suspend fun deleteDetails()
+    @Query("DELETE FROM CastDetails")
+    suspend fun deleteCastDetails()
+    @Query("DELETE FROM CrewDetails")
+    suspend fun deleteCrewDetails()
+    @Transaction
+    suspend fun deleteAllDetails(){
+        deleteDetails()
+        deleteCastDetails()
+        deleteCrewDetails()
+    }
+
 }

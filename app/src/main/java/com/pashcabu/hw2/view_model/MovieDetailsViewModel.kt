@@ -9,15 +9,15 @@ import com.pashcabu.hw2.model.NetworkModule
 import com.pashcabu.hw2.model.data_classes.networkResponses.CastResponse
 import com.pashcabu.hw2.model.data_classes.Database
 import com.pashcabu.hw2.model.data_classes.networkResponses.MovieDetailsResponse
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MovieDetailsViewModel(private val database: Database) : ViewModel() {
-    private val mutableMovieDetails: MutableLiveData<MovieDetailsResponse> = MutableLiveData(
-        MovieDetailsResponse()
-    )
+    private val mutableMovieDetails: MutableLiveData<MovieDetailsResponse> = MutableLiveData()
     private val mutableCastData: MutableLiveData<CastResponse> = MutableLiveData(CastResponse())
     private val mutableLoadingState: MutableLiveData<Boolean> = MutableLiveData(false)
     private val mutableErrorState: MutableLiveData<String> = MutableLiveData(NO_ERROR)
+    private val mutableConnectionState = MutableLiveData<Boolean>()
 
     val movieDetailsData: LiveData<MovieDetailsResponse> get() = mutableMovieDetails
     val castData: LiveData<CastResponse> get() = mutableCastData
@@ -33,21 +33,40 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
 
     fun loadData(id: Int) {
         viewModelScope.launch {
-            if (mutableMovieDetails.value == MovieDetailsResponse()) {
-                loadMovieDataFromDB(id)
-                loadMovieDataFromAPI(id)
+            if (mutableMovieDetails.value == null) {
+                var time = 0
+                while (mutableConnectionState.value == null) {
+                    delay(10) //mutableConnectionState.value changes to actual with a delay, waiting for network status
+                    time += 10
+                    if (time >= 30) break
+                }
+                if (mutableConnectionState.value == true) {
+                    loadMovieDataFromAPI(id)
+                } else {
+                    loadMovieDataFromDB(id)
+                }
             }
         }
     }
 
-    private suspend fun loadMovieDataFromDB(id: Int) {
+    private suspend fun loadMovieDataFromDB(id: Int): Boolean {
         mutableLoadingState.value = true
-        mutableMovieDetails.value =
-            converter.movieDetailsEntityToResponse(database.detailsDAO().getMovieDetails(id))
-        cast.castList = converter.castEntityListToResponseList(database.detailsDAO().getCast(id))
-        cast.crew = converter.crewEntityListToResponseList(database.detailsDAO().getCrew(id))
-        mutableCastData.value = cast
+        var loaded = false
+        val movie = converter.movieDetailsEntityToResponse(database.detailsDAO().getMovieDetails(id))
+        if (movie != MovieDetailsResponse()) {
+            loaded = true
+            cast.castList = converter.castEntityListToResponseList(database.detailsDAO().getCast(id))
+            cast.crew = converter.crewEntityListToResponseList(database.detailsDAO().getCrew(id))
+        }
+        if (loaded) {
+            mutableMovieDetails.value = movie
+            mutableCastData.value = cast
+        } else {
+            mutableMovieDetails.value = MovieDetailsResponse()
+            mutableErrorState.value = "No data in DB!"
+        }
         mutableLoadingState.value = false
+        return loaded
     }
 
     private suspend fun loadMovieDataFromAPI(id: Int) {
@@ -71,6 +90,7 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
             mutableLoadingState.value = false
         } catch (e: Exception) {
             e.printStackTrace()
+            loadMovieDataFromDB(id)
             mutableLoadingState.postValue(false)
             showError()
         }
@@ -84,6 +104,9 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
             loadMovieDataFromAPI(id)
             mutableLoadingState.value = false
         }
+    }
 
+    fun setConnectionState(connected: Boolean) {
+        mutableConnectionState.value = connected
     }
 }
