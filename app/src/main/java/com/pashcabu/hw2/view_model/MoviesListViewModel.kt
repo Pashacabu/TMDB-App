@@ -46,7 +46,7 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
     private val periodicWorkRequest =
-        PeriodicWorkRequestBuilder<MyWorker>(15, TimeUnit.MINUTES, 2, TimeUnit.MINUTES)
+        PeriodicWorkRequestBuilder<MyWorker>(8, TimeUnit.HOURS, 30, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
 
