@@ -1,10 +1,10 @@
 package com.pashcabu.hw2.model
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.pashcabu.hw2.model.data_classes.Cast
-import com.pashcabu.hw2.model.data_classes.GenresResponse
-import com.pashcabu.hw2.model.data_classes.MovieDetailsResponse
-import com.pashcabu.hw2.model.data_classes.MovieListResponse
+import com.pashcabu.hw2.model.data_classes.networkResponses.CastResponse
+import com.pashcabu.hw2.model.data_classes.networkResponses.GenresResponse
+import com.pashcabu.hw2.model.data_classes.networkResponses.MovieDetailsResponse
+import com.pashcabu.hw2.model.data_classes.networkResponses.MovieListResponse
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -36,6 +36,7 @@ class NetworkModule {
         .addInterceptor(inter)
         .build()
 
+
     private val retrofit = Retrofit.Builder()
         .baseUrl(baseUrl)
         .client(client)
@@ -62,7 +63,10 @@ class NetworkModule {
         suspend fun getGenres(@Query("api_key") api_key: String): GenresResponse
 
         @GET("movie/{movieID}/credits")
-        suspend fun getActors(@Path("movieID") id: Int, @Query("api_key") api_key: String): Cast
+        suspend fun getActors(
+            @Path("movieID") id: Int,
+            @Query("api_key") api_key: String
+        ): CastResponse
 
     }
 

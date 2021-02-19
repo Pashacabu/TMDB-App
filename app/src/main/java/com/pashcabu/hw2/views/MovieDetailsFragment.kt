@@ -6,21 +6,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.pashcabu.hw2.*
-import com.pashcabu.hw2.model.data_classes.Cast
-import com.pashcabu.hw2.model.data_classes.CastItem
-import com.pashcabu.hw2.model.data_classes.MovieDetailsResponse
+import com.pashcabu.hw2.model.ConnectionChecker
+import com.pashcabu.hw2.model.data_classes.networkResponses.CastResponse
+import com.pashcabu.hw2.model.data_classes.networkResponses.CastItem
+import com.pashcabu.hw2.model.data_classes.Database
+import com.pashcabu.hw2.model.data_classes.networkResponses.MovieDetailsResponse
+import com.pashcabu.hw2.view_model.ConnectionViewModel
+import com.pashcabu.hw2.view_model.MovieDetailsViewModel
 import com.pashcabu.hw2.views.adapters.MovieDetailsActorsClickListener
 import com.pashcabu.hw2.views.adapters.MovieDetailsAdapter
-import com.pashcabu.hw2.view_model.MyViewModel
+import com.pashcabu.hw2.view_model.MyViewModelFactory
+import com.pashcabu.hw2.view_model.NO_ERROR
 
 
 class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
@@ -36,6 +40,8 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private lateinit var castTitle: TextView
     private lateinit var actorsRecyclerView: RecyclerView
     private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var offlineWarning: TextView
+    private lateinit var connectionViewModel: ConnectionViewModel
     private var toast: Toast? = null
     private var backArrow: ImageView? = null
     private var backButton: TextView? = null
@@ -54,14 +60,52 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
     private val adapter = MovieDetailsAdapter(movieDetailsActorsClickListener)
     private var movieID = 0
-    private val viewModel: MyViewModel by viewModels()
+    private lateinit var viewModel: MovieDetailsViewModel
+    private lateinit var roomDB: Database
+    private var connectionChecker: ConnectionChecker? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        roomDB = Database.createDB(requireContext())
+        val factory = MyViewModelFactory.MoviesDetailsViewModelFactory(roomDB)
+        val factoryConnection = MyViewModelFactory.ConnectionViewModelfactory()
+        viewModel = ViewModelProvider(this, factory).get(MovieDetailsViewModel::class.java)
+        connectionViewModel = ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
+        connectionChecker = ConnectionChecker(requireContext())
+    }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.movie_details_fragment, container, false)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        toast?.cancel()
+    }
+
+    private val connectionObserver = Observer<Boolean> {
+        viewModel.setConnectionState(it)
+        if (it) {
+            offlineWarning.visibility = View.GONE
+        } else {
+            offlineWarning.visibility = View.VISIBLE
+        }
+    }
+    private val errorsObserver = Observer<String> {
+        if (it != NO_ERROR) {
+            if (toast == null) {
+                toast = Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT)
+                toast?.show()
+            } else {
+                toast?.cancel()
+                toast = Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT)
+                toast?.show()
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -78,6 +122,11 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         viewModel.castData.observe(this.viewLifecycleOwner, {
             updateActorsData(it)
         })
+        viewModel.errorState.observe(this.viewLifecycleOwner, errorsObserver)
+        connectionChecker?.observe(this.viewLifecycleOwner, {
+            connectionViewModel.setConnectionState(it)
+        })
+        connectionViewModel.connectionState.observe(this.viewLifecycleOwner, connectionObserver)
     }
 
     private fun showLoadingIndicator(loadingState: Boolean) {
@@ -85,7 +134,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun loadMovieDetailsData() {
-        viewModel.loadMovieDetailsToLiveData(movieID)
+        viewModel.loadData(movieID)
     }
 
     private fun refreshMovieDetailData() {
@@ -95,9 +144,9 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private fun updateMovieData(movie: MovieDetailsResponse) {
         context?.let {
             Glide.with(it)
-                .load(imageBigBaseUrl + movie.backdropPath)
-                .placeholder(R.drawable.poster_big_placeholder)
-                .into(poster)
+                    .load(imageBigBaseUrl + movie.backdropPath)
+                    .placeholder(R.drawable.poster_big_placeholder)
+                    .into(poster)
         }
         if (movie.adult == true) {
             pgRating.text = context?.resources?.getString(R.string.pg, 16)
@@ -112,9 +161,11 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         story.text = movie.overview
     }
 
-    private fun updateActorsData(actors: Cast) {
+    private fun updateActorsData(actors: CastResponse) {
         if (actors.castList.isNullOrEmpty()) {
             castTitle.text = getString(R.string.no_actors_data)
+        } else {
+            castTitle.text = getString(R.string.cast)
         }
         actorsRecyclerView.adapter = adapter
         adapter.loadActorsData(actors)
@@ -131,6 +182,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         reviews = view.findViewById(R.id.reviews)
         story = view.findViewById(R.id.storylineDescription)
         castTitle = view.findViewById(R.id.cast_title)
+        offlineWarning = view.findViewById(R.id.offline_warning)
         actorsRecyclerView = view.findViewById(R.id.actors_recycler_view)
         backArrow = view.findViewById<ImageView?>(R.id.backArrow)?.apply {
             setOnClickListener { movieDetailsClickListener?.onBackArrowPressed() }
@@ -139,7 +191,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             setOnClickListener { movieDetailsClickListener?.onBackArrowPressed() }
         }
         actorsRecyclerView.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         actorsRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 5))
     }
 
@@ -175,9 +227,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     override fun onRefresh() {
-        swipeRefresh.isRefreshing = true
         refreshMovieDetailData()
-        swipeRefresh.isRefreshing = false
 
     }
 

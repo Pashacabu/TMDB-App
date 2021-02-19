@@ -17,4 +17,5 @@ class Decorator : RecyclerView.ItemDecoration() {
         super.getItemOffsets(outRect, view, parent, state)
         outRect.set(spacing, spacing, spacing, spacing)
     }
+
 }

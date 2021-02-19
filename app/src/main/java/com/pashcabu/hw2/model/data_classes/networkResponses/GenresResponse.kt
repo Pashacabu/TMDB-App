@@ -1,4 +1,4 @@
-package com.pashcabu.hw2.model.data_classes
+package com.pashcabu.hw2.model.data_classes.networkResponses
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -6,15 +6,15 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GenresResponse(
 	@SerialName("genres")
-	val genres: List<GenresItem?>? = null
+	val genres: List<GenresListItem?>? = null
 
 )
 
 @Serializable
 data class GenresListItem(
 	@SerialName("name")
-	val name: String? = null,
+	var name: String? = null,
 	@SerialName("id")
-	val id: Int? = null
+	var id: Int? = null
 )
 
