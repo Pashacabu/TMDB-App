@@ -46,7 +46,16 @@ interface MoviesListDAO {
     suspend fun addToFavourite(item: EntityItem)
 
     @Query("UPDATE NowPlaying SET Favourite = :state WHERE TMDB_ID = :TMDB_ID")
-    suspend fun updateDB(TMDB_ID: Int, state: Boolean)
+    suspend fun updateNowPlaying(TMDB_ID: Int, state: Boolean)
+
+    @Query("UPDATE Popular SET Favourite = :state WHERE TMDB_ID = :TMDB_ID")
+    suspend fun updatePopular(TMDB_ID: Int, state: Boolean)
+
+    @Query("UPDATE TopRated SET Favourite = :state WHERE TMDB_ID = :TMDB_ID")
+    suspend fun updateTopRated(TMDB_ID: Int, state: Boolean)
+
+    @Query("UPDATE Upcoming SET Favourite = :state WHERE TMDB_ID = :TMDB_ID")
+    suspend fun updateUpcoming(TMDB_ID: Int, state: Boolean)
 
 
     @Query("SELECT * From ListOfFavourite")
