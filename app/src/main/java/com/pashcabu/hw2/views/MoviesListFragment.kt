@@ -14,14 +14,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.work.WorkManager
 import com.pashcabu.hw2.R
 import com.pashcabu.hw2.model.ConnectionChecker
 import com.pashcabu.hw2.model.data_classes.Database
 import com.pashcabu.hw2.model.data_classes.networkResponses.Movie
-import com.pashcabu.hw2.view_model.ConnectionViewModel
-import com.pashcabu.hw2.view_model.MoviesListViewModel
-import com.pashcabu.hw2.view_model.MyViewModelFactory
-import com.pashcabu.hw2.view_model.NO_ERROR
+import com.pashcabu.hw2.view_model.*
 import com.pashcabu.hw2.views.adapters.MoviesListClickListener
 import com.pashcabu.hw2.views.adapters.MyScrollListener
 import com.pashcabu.hw2.views.adapters.NewMoviesListAdapter
@@ -32,12 +30,12 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private var openMovieListener: MoviesListClickListener = object : MoviesListClickListener {
         override fun onMovieSelected(movieID: Int, title: String) {
             activity?.supportFragmentManager?.beginTransaction()
-                    ?.add(R.id.fragment_container, MovieDetailsFragment.newInstance("", movieID))
-                    ?.addToBackStack(title)?.commit()
+                ?.add(R.id.fragment_container, MovieDetailsFragment.newInstance("", movieID))
+                ?.addToBackStack(title)?.commit()
         }
 
         override fun onMovieLiked(movie: Movie) {
-            viewModel.addToFavourite(endpoint, movie)
+            viewModel.onLikedButtonPressed(endpoint, movie)
         }
     }
 
@@ -54,10 +52,11 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private var toast: Toast? = null
     private var connectionChecker: ConnectionChecker? = null
 
+
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.movies_list_fragment, container, false)
     }
@@ -92,10 +91,12 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         roomDB = Database.createDB(requireContext())
-        val factory = MyViewModelFactory.MoviesListViewModelFactory(roomDB)
-        val factoryConnection = MyViewModelFactory.ConnectionViewModelfactory()
+        val worker = WorkManager.getInstance(requireContext())
+        val factory = MyViewModelFactory.MoviesListViewModelFactory(roomDB, worker)
+        val factoryConnection = MyViewModelFactory.ConnectionViewModelFactory()
         viewModel = ViewModelProvider(this, factory).get(MoviesListViewModel::class.java)
-        connectionViewModel = ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
+        connectionViewModel =
+            ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
         connectionChecker = ConnectionChecker(requireContext())
     }
 
@@ -163,13 +164,17 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private fun addLoadMoreListener() {
         val listener = MyScrollListener {
             currentPage += 1
-            if (totalPages != 0) {
+            if (totalPages != 0 && offlineWarning.visibility == View.GONE) {
                 if (currentPage <= totalPages) {
                     viewModel.loadMore(endpoint, currentPage)
-                } else Toast.makeText(this.context, "No more pages to load!", Toast.LENGTH_SHORT)
+                } else {
+                    Toast.makeText(this.context, "No more pages to load!", Toast.LENGTH_SHORT)
                         .show()
-            } else Toast.makeText(this.context, "No pages to load!", Toast.LENGTH_SHORT)
+                }
+            } else if (offlineWarning.visibility == View.VISIBLE) {
+                Toast.makeText(this.context, "No connection!", Toast.LENGTH_SHORT)
                     .show()
+            }
         }
         if (endpoint != FAVOURITE) {
             moviesListRecyclerView.addOnScrollListener(listener)

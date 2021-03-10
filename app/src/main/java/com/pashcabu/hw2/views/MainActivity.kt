@@ -3,7 +3,6 @@ package com.pashcabu.hw2.views
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.pashcabu.hw2.R
-import com.pashcabu.hw2.model.ConnectionChecker
 
 
 class MainActivity : AppCompatActivity(), MovieDetailsFragment.MovieDetailsClickListener {

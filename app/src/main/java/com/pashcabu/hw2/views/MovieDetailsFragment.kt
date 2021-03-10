@@ -68,7 +68,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         super.onCreate(savedInstanceState)
         roomDB = Database.createDB(requireContext())
         val factory = MyViewModelFactory.MoviesDetailsViewModelFactory(roomDB)
-        val factoryConnection = MyViewModelFactory.ConnectionViewModelfactory()
+        val factoryConnection = MyViewModelFactory.ConnectionViewModelFactory()
         viewModel = ViewModelProvider(this, factory).get(MovieDetailsViewModel::class.java)
         connectionViewModel = ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
         connectionChecker = ConnectionChecker(requireContext())

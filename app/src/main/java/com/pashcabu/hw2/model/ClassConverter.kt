@@ -241,4 +241,11 @@ class ClassConverter {
         return crewList
     }
 
+    fun genresIntToStrings(item: Movie?, genresMap: Map<Int?, String?>?): Movie? {
+        val ids = item?.genreIds
+        val genresBasedOnIds = ids?.map { genresMap?.get(it) }
+        item?.genres = genresBasedOnIds
+        return item
+    }
+
 }

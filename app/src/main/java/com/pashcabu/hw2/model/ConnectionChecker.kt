@@ -7,7 +7,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.LiveData
-import java.lang.IllegalArgumentException
 
 
 class ConnectionChecker(context: Context) : LiveData<Boolean>() {
@@ -30,19 +29,7 @@ class ConnectionChecker(context: Context) : LiveData<Boolean>() {
                 builderWiFi.build(),
                 MyWiFiCallback()
         )
-//        super.onActive()
     }
-
-//    override fun onInactive() {
-//        super.onInactive()
-//        try {
-//            manager.unregisterNetworkCallback(MyCellularCallback())
-//            manager.unregisterNetworkCallback(MyWiFiCallback())
-//        } catch (e : IllegalArgumentException){
-//            e.printStackTrace()
-//        }
-//
-//    }
 
     fun postActualConnectivityStatus() {
         if (cellularIsOn || wiFiIsOn) {
@@ -52,7 +39,6 @@ class ConnectionChecker(context: Context) : LiveData<Boolean>() {
             postValue(false)
         }
     }
-
 
     inner class MyCellularCallback() : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {

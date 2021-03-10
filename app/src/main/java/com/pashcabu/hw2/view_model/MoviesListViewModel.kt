@@ -1,9 +1,12 @@
 package com.pashcabu.hw2.view_model
 
 
-
+import android.util.Log
 import androidx.lifecycle.*
+import androidx.work.*
+import com.pashcabu.hw2.model.MyWorker
 import com.pashcabu.hw2.model.ClassConverter
+import com.pashcabu.hw2.model.DBHandler
 import com.pashcabu.hw2.model.NetworkModule
 import com.pashcabu.hw2.model.NetworkModule.Companion.api_key
 import com.pashcabu.hw2.model.data_classes.*
@@ -11,9 +14,11 @@ import com.pashcabu.hw2.model.data_classes.networkResponses.GenresListItem
 import com.pashcabu.hw2.model.data_classes.networkResponses.Movie
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import kotlin.Exception
 
-class MoviesListViewModel(private val database: Database) : ViewModel() {
+class MoviesListViewModel(private val database: Database, private val worker: WorkManager) :
+    ViewModel() {
 
     private val mutableMoviesList = MutableLiveData<List<Movie?>>(emptyList())
     private val mutableAmountOfPages = MutableLiveData<Int>()
@@ -34,9 +39,28 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
 
     private val network: NetworkModule.TMDBInterface = NetworkModule().apiService
     private val converter = ClassConverter()
+    private val dbHandler = DBHandler(database)
 
+    private val constraints = Constraints.Builder()
+        .setRequiresCharging(true)
+        .setRequiredNetworkType(NetworkType.CONNECTED)
+        .build()
+    private val periodicWorkRequest =
+        PeriodicWorkRequestBuilder<MyWorker>(8, TimeUnit.HOURS, 30, TimeUnit.MINUTES)
+            .setConstraints(constraints)
+            .build()
+
+    private val singleWorkRequest = OneTimeWorkRequest.Builder(MyWorker::class.java)
+        .setInitialDelay(1L, TimeUnit.MINUTES)
+        .build()
+
+    private fun startWorkManager() {
+//        Log.d("VM", "Stating work manager")
+        worker.enqueueUniquePeriodicWork("DB Background Periodic Update", ExistingPeriodicWorkPolicy.KEEP, periodicWorkRequest)
+    }
 
     fun loadLiveData(endpoint: String?, currentPage: Int) {
+        startWorkManager()
         if (mutableMoviesList.value.isNullOrEmpty()) {
             if (endpoint == FAVOURITE) {
                 viewModelScope.launch {
@@ -62,19 +86,18 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
 
     private suspend fun loadFromDB(endpoint: String?): Boolean {
         var result = false
-        genresAll = loadGenresFromDB()
-        val movies = loadMoviesListFromDB(endpoint)
-        if (endpoint!= FAVOURITE){
+        genresAll = dbHandler.loadGenresFromDB()
+        val movies = dbHandler.loadMoviesListFromDB(endpoint)
+        if (endpoint != FAVOURITE) {
             if (genresAll.isNotEmpty() && movies?.isNotEmpty() == true) {
                 mutableMoviesList.value = movies
                 result = true
             } else {
                 mutableErrorState.value = "No data in DB!"
             }
-        } else{
+        } else {
             mutableMoviesList.value = movies
         }
-
         return result
     }
 
@@ -83,12 +106,11 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
         loadMoviesFromAPI(endpoint, currentPage)
     }
 
-    fun addToFavourite(endpoint: String?, movie: Movie) {
+    fun onLikedButtonPressed(endpoint: String?, movie: Movie) {
         viewModelScope.launch {
             if (!movie.addedToFavourite) {
                 movie.addedToFavourite = true
-                database.movieDAO().addToFavourite(converter.movieToEntityItem(movie))
-                movie.id?.let { database.movieDAO().updateDB(it, movie.addedToFavourite) }
+                dbHandler.addToFavourite(endpoint, movie)
                 loadedList.forEach {
                     if (it?.id == movie.id) {
                         it?.addedToFavourite = true
@@ -96,14 +118,14 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
                     mutableMoviesList.value = loadedList
                 }
             } else {
+                movie.addedToFavourite = false
                 if (endpoint == FAVOURITE) {
                     movie.id?.let {
-                        database.movieDAO().deleteFromFavourite(it)
+                        dbHandler.deleteFromFavourite(endpoint, movie)
                         loadFromDB(endpoint)
                     }
                 }
-                movie.id?.let { database.movieDAO().deleteFromFavourite(it) }
-                movie.id?.let { database.movieDAO().updateDB(it, !movie.addedToFavourite) }
+                dbHandler.deleteFromFavourite(endpoint, movie)
                 loadedList.forEach {
                     if (it?.id == movie.id) {
                         it?.addedToFavourite = false
@@ -112,74 +134,6 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
             }
         }
 
-    }
-
-    private suspend fun loadMoviesListFromDB(endpoint: String?): List<Movie?>? {
-        var listOfMovies: List<Movie?>? = null
-        mutableLoadingState.value = true
-        when (endpoint) {
-            NOW_PLAYING -> {
-                val listOfEntities = database.movieDAO().getNowPlaying()
-                listOfMovies = converter.entityItemsListToMovieList(listOfEntities)
-            }
-            POPULAR -> {
-                val listOfEntities = database.movieDAO().getPopular()
-                listOfMovies = converter.entityItemsListToMovieList(listOfEntities)
-            }
-            TOP_RATED -> {
-                val listOfEntities = database.movieDAO().getTopRated()
-                listOfMovies = converter.entityItemsListToMovieList(listOfEntities)
-            }
-            UPCOMING -> {
-                val listOfEntities = database.movieDAO().getUpcoming()
-                listOfMovies = converter.entityItemsListToMovieList(listOfEntities)
-            }
-            FAVOURITE -> {
-                val listOfEntities = database.movieDAO().getListOfFavourite()
-                listOfMovies = converter.entityItemsListToMovieList(listOfEntities)
-            }
-        }
-        mutableLoadingState.value = false
-        return listOfMovies
-    }
-
-    private suspend fun saveMoviesListToDB(endpoint: String?, list: List<Movie?>?) {
-        val listOfEntities = list?.let { converter.movieListToEntityList(it) }
-        if (listOfEntities != null) {
-            when (endpoint) {
-                NOW_PLAYING -> {
-                    database.movieDAO().insertNowPlaying(listOfEntities)
-                }
-                POPULAR -> {
-                    database.movieDAO().insertPopular(listOfEntities)
-                }
-                TOP_RATED -> {
-                    database.movieDAO().insertTopRated(listOfEntities)
-                }
-                UPCOMING -> {
-                    database.movieDAO().insertUpcoming(listOfEntities)
-                }
-            }
-        }
-    }
-
-    private suspend fun clearDBTable(endpoint: String?) {
-        when (endpoint) {
-            NOW_PLAYING -> {
-                database.movieDAO().deleteNowPlaying()
-            }
-            POPULAR -> {
-                database.movieDAO().deletePopular()
-            }
-            UPCOMING -> {
-                database.movieDAO().deleteUpcoming()
-            }
-            TOP_RATED -> {
-                database.movieDAO().deleteTopRated()
-            }
-        }
-        database.detailsDAO().deleteAllDetails()
-        database.genresDAO().deleteGenres()
     }
 
     fun refreshMovieList(endpoint: String?, currentPage: Int) {
@@ -194,7 +148,7 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
                 if (mutableConnectionState.value == true) {
                     try {
                         loadedList.clear()
-                        clearDBTable(endpoint)
+                        dbHandler.clearDBTable(endpoint)
                         loadFromAPI(endpoint, currentPage)
                     } catch (e: Exception) {
                         showError()
@@ -220,7 +174,7 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
             mutableLoadingState.value = true
             list = network.getGenres(api_key).genres ?: listOf()
             genresAll.putAll(list.associateBy({ it?.id }, { it?.name }))
-            saveGenresToDB(list)
+            dbHandler.saveGenresToDB(list)
             hideError()
             mutableLoadingState.value = false
         } catch (e: Exception) {
@@ -230,42 +184,28 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
         }
     }
 
-    private suspend fun saveGenresToDB(list: List<GenresListItem?>) {
-        val listToSave = converter.genresListRespToEntity(list)
-        database.genresDAO().insertGenres(listToSave)
-    }
-
-    private suspend fun loadGenresFromDB(): MutableMap<Int?, String?> {
-        val output: MutableMap<Int?, String?> = mutableMapOf()
-        mutableLoadingState.value = true
-        val listOfGenres = database.genresDAO().getGenres()
-        output.putAll(listOfGenres.associateBy({ it.id }, { it.name }))
-        mutableLoadingState.value = false
-        return output
-    }
-
     private suspend fun loadMoviesFromAPI(endpoint: String?, pageToLoad: Int) {
         try {
             mutableLoadingState.postValue(true)
             val newListOfMovies = network.getMoviesList(
-                    endpoint,
-                    api_key,
-                    pageToLoad
+                endpoint,
+                api_key,
+                pageToLoad
             )
             mutableAmountOfPages.value = newListOfMovies.totalPages ?: 0
             val newListWithGenres =
-                    newListOfMovies.results?.map {
-                        genresIntToStrings(
-                                it,
-                                genresAll
-                        )
-                    }!!
-            val listOfFavourite =
-                    converter.entityItemsListToMovieList(
-                            database.movieDAO().getListOfFavourite()
+                newListOfMovies.results?.map {
+                    converter.genresIntToStrings(
+                        it,
+                        genresAll
                     )
+                }!!
+            val listOfFavourite =
+                converter.entityItemsListToMovieList(
+                    database.movieDAO().getListOfFavourite()
+                )
             newListWithGenres.forEach { checkIfInFavourite(it, listOfFavourite) }
-            saveMoviesListToDB(endpoint, newListWithGenres)
+            dbHandler.saveMoviesListToDB(endpoint, newListWithGenres)
             loadedList.addAll(newListWithGenres)
             hideError()
             mutableMoviesList.postValue(loadedList)
@@ -299,17 +239,9 @@ class MoviesListViewModel(private val database: Database) : ViewModel() {
         }
     }
 
-    private fun genresIntToStrings(item: Movie?, genresMap: Map<Int?, String?>?): Movie? {
-        val ids = item?.genreIds
-        val genresBasedOnIds = ids?.map { genresMap?.get(it) }
-        item?.genres = genresBasedOnIds
-        return item
-    }
-
     fun setConnectionState(connected: Boolean) {
         mutableConnectionState.value = connected
     }
-
 }
 
 
@@ -319,4 +251,5 @@ const val TOP_RATED = "top_rated"
 const val UPCOMING = "upcoming"
 const val FAVOURITE = "favourite"
 const val NO_ERROR = "No Errors"
+
 
