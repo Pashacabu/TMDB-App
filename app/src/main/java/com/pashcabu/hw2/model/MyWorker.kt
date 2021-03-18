@@ -40,10 +40,10 @@ class MyWorker(val context: Context, workerParams: WorkerParameters) :
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch {
             refreshDB()
-            delay(2000L)
-            dbHandler.clearDBTable(NOW_PLAYING)
-            delay(5000L)
-            refreshDB()
+//            delay(2000L)
+//            dbHandler.clearDBTable(NOW_PLAYING)
+//            delay(5000L)
+//            refreshDB()
         }
         return Result.success()
     }

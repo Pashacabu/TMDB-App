@@ -59,8 +59,8 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         .build()
 
     private fun startWorkManager() {
-//        worker.enqueueUniquePeriodicWork("DB Background Periodic Update", ExistingPeriodicWorkPolicy.KEEP, periodicWorkRequest)
-        worker.enqueue(singleWorkRequest) //for testing
+        worker.enqueueUniquePeriodicWork("DB Background Periodic Update", ExistingPeriodicWorkPolicy.KEEP, periodicWorkRequest)
+//        worker.enqueue(singleWorkRequest) //for testing
     }
 
     fun loadLiveData(endpoint: String?, currentPage: Int) {
@@ -97,8 +97,8 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         genresAll = dbHandler.loadGenresFromDB()
         val movies = dbHandler.loadMoviesListFromDB(endpoint)
         if (endpoint != FAVOURITE) {
-            if (genresAll.isNotEmpty() && movies?.isNotEmpty() == true) {
-                mutableMoviesList.value = movies ?: listOf()
+            if (genresAll.isNotEmpty() && !movies.isNullOrEmpty()) {
+                mutableMoviesList.value = movies!!
                 result = true
             } else {
                 mutableErrorState.value = "No data in movies DB!"
