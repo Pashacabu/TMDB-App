@@ -108,8 +108,8 @@ class DBHandler(private val database: Database) {
                 database.movieDAO().deleteTopRated()
             }
         }
-        clearDetails()
-        clearGenres()
+//        clearDetails()
+//        clearGenres()
     }
 
     private suspend fun clearDetails() {

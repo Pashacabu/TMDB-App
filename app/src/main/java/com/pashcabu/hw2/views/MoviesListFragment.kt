@@ -1,12 +1,18 @@
 package com.pashcabu.hw2.views
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.*
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -24,14 +30,16 @@ import com.pashcabu.hw2.views.adapters.MoviesListClickListener
 import com.pashcabu.hw2.views.adapters.MyScrollListener
 import com.pashcabu.hw2.views.adapters.NewMoviesListAdapter
 
+
 class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
 
     private var openMovieListener: MoviesListClickListener = object : MoviesListClickListener {
         override fun onMovieSelected(movieID: Int, title: String) {
             activity?.supportFragmentManager?.beginTransaction()
-                ?.add(R.id.fragment_container, MovieDetailsFragment.newInstance("", movieID))
-                ?.addToBackStack(title)?.commit()
+                ?.add(R.id.fragment_container, MovieDetailsFragment.newInstance(/*"", */movieID))
+                ?.addToBackStack(title)
+                ?.commit()
         }
 
         override fun onMovieLiked(movie: Movie) {
@@ -53,6 +61,12 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private var connectionChecker: ConnectionChecker? = null
 
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+
+
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -70,7 +84,10 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             refreshData()
         }
         offlineWarning = view.findViewById(R.id.offline_warning)
+
     }
+
+
 
     private fun setUpAdapter(view: View) {
         val orientation = view.context.resources.configuration.orientation
@@ -200,6 +217,11 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     override fun onPause() {
         super.onPause()
+        toast?.cancel()
+    }
+
+    override fun onStop() {
+        super.onStop()
         toast?.cancel()
     }
 

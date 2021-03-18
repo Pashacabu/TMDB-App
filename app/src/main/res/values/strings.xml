@@ -12,6 +12,7 @@
     <string name="no_actors_data">No cast data available</string>
     <string name="refresh_button">Refresh</string>
     <string name="offline_data_pull_down_to_refresh">Offline</string>
+    <string name="watch_later">Watch later</string>
 
     <string-array name="tabs">
         <item>Latest</item>
@@ -21,6 +22,18 @@
         <item>Upcoming</item>
         <item>Favourite</item>
     </string-array>
+
+    <string name="cal_permission_not_granted">Calendar permission not granted!</string>
+    <string name="ask_for_permission">Please allow access to calendar to continue</string>
+    <string name="this_will_not_work_without_permission">This feature will not work without permission</string>
+    <string name="ok">OK</string>
+    <string name="cancel">CANCEL</string>
+    <string name="channelID">New movie notification</string>
+    <string name="channelName">New movies</string>
+    <string name="baseImageURL">https://image.tmdb.org/t/p/w780</string>
+    <string name="deepLinkBaseURL">com.pashcabu.hw2://movie/</string>
+    <string name="notificationTitle_highestRating">Movie with the Highest rating now:</string>
+    <string name="notificationTitle_new">New movie!</string>
 
 
 

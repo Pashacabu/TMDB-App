@@ -1,11 +1,21 @@
 package com.pashcabu.hw2.views
 
+import android.Manifest
+import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.CalendarContract
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -25,6 +35,7 @@ import com.pashcabu.hw2.views.adapters.MovieDetailsActorsClickListener
 import com.pashcabu.hw2.views.adapters.MovieDetailsAdapter
 import com.pashcabu.hw2.view_model.MyViewModelFactory
 import com.pashcabu.hw2.view_model.NO_ERROR
+import java.util.*
 
 
 class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
@@ -42,6 +53,9 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var offlineWarning: TextView
     private lateinit var connectionViewModel: ConnectionViewModel
+    private lateinit var watchLaterBtn: Button
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
+    private var movieWithDetails = MovieDetailsResponse()
     private var toast: Toast? = null
     private var backArrow: ImageView? = null
     private var backButton: TextView? = null
@@ -64,20 +78,23 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private lateinit var roomDB: Database
     private var connectionChecker: ConnectionChecker? = null
 
+    var isRationaleShown = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         roomDB = Database.createDB(requireContext())
         val factory = MyViewModelFactory.MoviesDetailsViewModelFactory(roomDB)
         val factoryConnection = MyViewModelFactory.ConnectionViewModelFactory()
         viewModel = ViewModelProvider(this, factory).get(MovieDetailsViewModel::class.java)
-        connectionViewModel = ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
+        connectionViewModel =
+            ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
         connectionChecker = ConnectionChecker(requireContext())
     }
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.movie_details_fragment, container, false)
     }
@@ -142,11 +159,12 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun updateMovieData(movie: MovieDetailsResponse) {
+        movieWithDetails=movie
         context?.let {
             Glide.with(it)
-                    .load(imageBigBaseUrl + movie.backdropPath)
-                    .placeholder(R.drawable.poster_big_placeholder)
-                    .into(poster)
+                .load(imageBigBaseUrl + movie.backdropPath)
+                .placeholder(R.drawable.poster_big_placeholder)
+                .into(poster)
         }
         if (movie.adult == true) {
             pgRating.text = context?.resources?.getString(R.string.pg, 16)
@@ -191,38 +209,138 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             setOnClickListener { movieDetailsClickListener?.onBackArrowPressed() }
         }
         actorsRecyclerView.layoutManager =
-                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         actorsRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 5))
+        watchLaterBtn = view.findViewById(R.id.watchLaterButton)
+        watchLaterBtn.setOnClickListener {
+            checkForPermissionsAndSchedule()
+        }
     }
+
+    private fun checkForPermissionsAndSchedule() {
+        activity?.let {
+            when {
+                ContextCompat.checkSelfPermission(it, Manifest.permission.READ_CALENDAR)
+                        == PackageManager.PERMISSION_GRANTED &&
+                        ContextCompat.checkSelfPermission(it, Manifest.permission.WRITE_CALENDAR)
+                        == PackageManager.PERMISSION_GRANTED-> onPermissionGranted()
+                shouldShowRequestPermissionRationale(Manifest.permission.READ_CALENDAR) ->
+                    showPermissionExplanationDialog()
+                shouldShowRequestPermissionRationale(Manifest.permission.WRITE_CALENDAR) ->
+                    showPermissionExplanationDialog()
+                isRationaleShown -> showPermissionDeniedDialog()
+                else -> requestPermission()
+            }
+        }
+
+    }
+
+    private fun requestPermission() {
+        context?.let {
+            requestPermissionLauncher.launch(Manifest.permission.READ_CALENDAR)
+            requestPermissionLauncher.launch(Manifest.permission.WRITE_CALENDAR)
+        }
+    }
+
+    private fun showPermissionDeniedDialog() {
+        AlertDialog.Builder(requireContext())
+            .setMessage(R.string.this_will_not_work_without_permission)
+            .setPositiveButton(R.string.ok) { dialog, _ ->
+                startActivity(
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:" + context?.packageName)
+                    )
+                )
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun showPermissionExplanationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setMessage(R.string.ask_for_permission)
+            .setPositiveButton(R.string.ok) { dialog, _ ->
+                isRationaleShown = true
+                requestPermission()
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun onPermissionGranted() {
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
+        val hour = calendar.get(Calendar.HOUR)
+        val minute = calendar.get(Calendar.MINUTE)
+        val startMillis: Long = Calendar.getInstance().run {
+            set(year, month, dayOfMonth+1, hour, minute)
+            timeInMillis
+        }
+        val endMillis: Long = Calendar.getInstance().run {
+            set(year, month, dayOfMonth, hour+1, minute)
+            timeInMillis
+        }
+        val intent = Intent(Intent.ACTION_INSERT)
+            .setData(CalendarContract.Events.CONTENT_URI)
+            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startMillis)
+            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endMillis)
+            .putExtra(CalendarContract.Events.TITLE, "Watch "+movieWithDetails.movieTitle)
+        startActivity(intent)
+    }
+
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
+        requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                onPermissionGranted()
+            } else {
+                onPermissionNotGranted()
+            }
+        }
         if (context is MovieDetailsClickListener) {
             movieDetailsClickListener = context
         }
     }
 
+    private fun onPermissionNotGranted() {
+        Toast.makeText(requireContext(), R.string.cal_permission_not_granted, Toast.LENGTH_LONG)
+            .show()
+    }
+
     override fun onDetach() {
         super.onDetach()
         movieDetailsClickListener = null
+        requestPermissionLauncher.unregister()
     }
+
 
     interface MovieDetailsClickListener {
         fun onBackArrowPressed()
     }
 
     companion object {
-        fun newInstance(endpoint: String, movieID: Int): MovieDetailsFragment {
+        fun newInstance(/*endpoint: String,*/ movieID: Int): MovieDetailsFragment {
             val arg = Bundle()
             arg.putInt(TITLE, movieID)
-            arg.putString(ENDPOINT, endpoint)
+//            arg.putString(ENDPOINT, endpoint)
             val fragment = MovieDetailsFragment()
             fragment.arguments = arg
             return fragment
         }
 
         const val TITLE = "movieTitle"
-        private const val ENDPOINT = "endPoint"
         private const val imageBigBaseUrl = "https://image.tmdb.org/t/p/w780"
     }
 
@@ -231,5 +349,11 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     }
 
+
 }
+
+
+
+
+
 

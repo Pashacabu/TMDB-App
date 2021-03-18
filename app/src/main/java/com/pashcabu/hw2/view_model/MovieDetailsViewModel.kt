@@ -1,5 +1,6 @@
 package com.pashcabu.hw2.view_model
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -33,7 +34,7 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
 
     fun loadData(id: Int) {
         viewModelScope.launch {
-            if (mutableMovieDetails.value == null) {
+            if (mutableMovieDetails.value == null || mutableMovieDetails.value == MovieDetailsResponse()) {
                 var time = 0
                 while (mutableConnectionState.value == null) {
                     delay(10) //mutableConnectionState.value changes to actual with a delay, waiting for network status
@@ -44,6 +45,7 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
                     loadMovieDataFromAPI(id)
                 } else {
                     loadMovieDataFromDB(id)
+                    mutableErrorState.value="Offline data"
                 }
             }
         }
@@ -101,7 +103,7 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
             mutableLoadingState.value = true
             mutableMovieDetails.value = MovieDetailsResponse()
             mutableCastData.value = CastResponse()
-            loadMovieDataFromAPI(id)
+            loadData(id)
             mutableLoadingState.value = false
         }
     }
