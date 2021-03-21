@@ -159,7 +159,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun updateMovieData(movie: MovieDetailsResponse) {
-        movieWithDetails=movie
+        movieWithDetails = movie
         context?.let {
             Glide.with(it)
                 .load(imageBigBaseUrl + movie.backdropPath)
@@ -223,7 +223,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                 ContextCompat.checkSelfPermission(it, Manifest.permission.READ_CALENDAR)
                         == PackageManager.PERMISSION_GRANTED &&
                         ContextCompat.checkSelfPermission(it, Manifest.permission.WRITE_CALENDAR)
-                        == PackageManager.PERMISSION_GRANTED-> onPermissionGranted()
+                        == PackageManager.PERMISSION_GRANTED -> onPermissionGranted()
                 shouldShowRequestPermissionRationale(Manifest.permission.READ_CALENDAR) ->
                     showPermissionExplanationDialog()
                 shouldShowRequestPermissionRationale(Manifest.permission.WRITE_CALENDAR) ->
@@ -282,18 +282,18 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         val hour = calendar.get(Calendar.HOUR)
         val minute = calendar.get(Calendar.MINUTE)
         val startMillis: Long = Calendar.getInstance().run {
-            set(year, month, dayOfMonth+1, hour, minute)
+            set(year, month, dayOfMonth + 1, hour, minute)
             timeInMillis
         }
         val endMillis: Long = Calendar.getInstance().run {
-            set(year, month, dayOfMonth, hour+1, minute)
+            set(year, month, dayOfMonth, hour + 1, minute)
             timeInMillis
         }
         val intent = Intent(Intent.ACTION_INSERT)
             .setData(CalendarContract.Events.CONTENT_URI)
             .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startMillis)
             .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endMillis)
-            .putExtra(CalendarContract.Events.TITLE, "Watch "+movieWithDetails.movieTitle)
+            .putExtra(CalendarContract.Events.TITLE, "Watch " + movieWithDetails.movieTitle)
         startActivity(intent)
     }
 
@@ -331,7 +331,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     companion object {
-        fun newInstance(/*endpoint: String,*/ movieID: Int): MovieDetailsFragment {
+        fun newInstance(movieID: Int): MovieDetailsFragment {
             val arg = Bundle()
             arg.putInt(TITLE, movieID)
 //            arg.putString(ENDPOINT, endpoint)

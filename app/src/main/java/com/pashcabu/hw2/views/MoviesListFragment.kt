@@ -37,7 +37,7 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private var openMovieListener: MoviesListClickListener = object : MoviesListClickListener {
         override fun onMovieSelected(movieID: Int, title: String) {
             activity?.supportFragmentManager?.beginTransaction()
-                ?.add(R.id.fragment_container, MovieDetailsFragment.newInstance(/*"", */movieID))
+                ?.add(R.id.fragment_container, MovieDetailsFragment.newInstance(movieID))
                 ?.addToBackStack(title)
                 ?.commit()
         }
@@ -60,13 +60,6 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private var toast: Toast? = null
     private var connectionChecker: ConnectionChecker? = null
 
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-
-
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -74,7 +67,6 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     ): View? {
         return inflater.inflate(R.layout.movies_list_fragment, container, false)
     }
-
 
     private fun findViews(view: View) {
         moviesListRecyclerView = view.findViewById(R.id.movies_list_recycler_view)
@@ -86,8 +78,6 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         offlineWarning = view.findViewById(R.id.offline_warning)
 
     }
-
-
 
     private fun setUpAdapter(view: View) {
         val orientation = view.context.resources.configuration.orientation

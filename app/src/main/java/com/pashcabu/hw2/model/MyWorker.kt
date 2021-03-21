@@ -40,10 +40,6 @@ class MyWorker(val context: Context, workerParams: WorkerParameters) :
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch {
             refreshDB()
-//            delay(2000L)
-//            dbHandler.clearDBTable(NOW_PLAYING)
-//            delay(5000L)
-//            refreshDB()
         }
         return Result.success()
     }
@@ -61,22 +57,16 @@ class MyWorker(val context: Context, workerParams: WorkerParameters) :
         loadMoviesFromAPI(endpoint, currentPage)
     }
 
+
     private fun notifyUser(difference: List<Movie?>?, notTitle: String) {
-        var mostRatedMovie = Movie()
-        if (difference?.isNotEmpty() == true) {
-            for (movie in difference) {
-                if (movie?.voteAverage ?: 0.0 >= mostRatedMovie.voteAverage ?: 0.0) {
-                    if (movie != null) {
-                        mostRatedMovie = movie
-                    }
-                }
-            }
-        }
+        val mostRatedMovie = getMostRated(difference)
         val notManager = NotificationManagerCompat.from(context)
         val channelID = context.getString(R.string.channelID)
         val name = context.getString(R.string.channelName)
-        val channel = NotificationChannel(channelID, name, NotificationManager.IMPORTANCE_HIGH)
-        notManager.createNotificationChannel(channel)
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
+            val channel = NotificationChannel(channelID, name, NotificationManager.IMPORTANCE_HIGH)
+            notManager.createNotificationChannel(channel)
+        }
         val imageBaseUrl = context.getString(R.string.baseImageURL)
         val fTarget = Glide.with(context)
             .asBitmap()
@@ -85,23 +75,38 @@ class MyWorker(val context: Context, workerParams: WorkerParameters) :
             .submit()
         val myBitmap = fTarget.get()
         val baseURL = context.getString(R.string.deepLinkBaseURL)
-        val uri = (baseURL+mostRatedMovie.id).toUri()
+        val uri = (baseURL + mostRatedMovie.id).toUri()
         val intent = Intent(context, MainActivity::class.java)
             .setAction(Intent.ACTION_VIEW)
             .setData(uri)
         val pendingIntent =
             PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val notification = NotificationCompat.Builder(context, channelID)
-            .setContentTitle(notTitle)
-            .setStyle(NotificationCompat.BigPictureStyle().bigPicture(myBitmap))
-            .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.icon))
-            .setSmallIcon(R.drawable.icon)
-            .setContentText(mostRatedMovie.title)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
+        val notification =
+            NotificationCompat.Builder(context, context.getString(R.string.channelID))
+                .setContentTitle(notTitle)
+                .setStyle(NotificationCompat.BigPictureStyle().bigPicture(myBitmap))
+                .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.icon))
+                .setSmallIcon(R.drawable.icon)
+                .setContentText(mostRatedMovie.title)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build()
 
         notManager.notify("Movie", mostRatedMovie.id ?: 0, notification)
+    }
+
+    private fun getMostRated(list: List<Movie?>?): Movie {
+        var mostRatedMovie = Movie()
+        if (!list.isNullOrEmpty()) {
+            for (movie in list) {
+                if (movie?.voteAverage ?: 0.0 >= mostRatedMovie.voteAverage ?: 0.0) {
+                    if (movie != null) {
+                        mostRatedMovie = movie
+                    }
+                }
+            }
+        }
+        return mostRatedMovie
     }
 
     private suspend fun loadGenresFromAPI() {
@@ -137,11 +142,11 @@ class MyWorker(val context: Context, workerParams: WorkerParameters) :
             val currentListOfMovies = dbHandler.loadMoviesListFromDB(endpoint) ?: listOf()
             if (endpoint == NOW_PLAYING) {
                 newListWithGenres?.map { movie ->
-                    if (!checkIfContainsElement(currentListOfMovies, movie)){
-                            if (movie != null) {
-                                difference.add(movie)
-                            }
+                    if (!checkIfContainsElement(currentListOfMovies, movie)) {
+                        if (movie != null) {
+                            difference.add(movie)
                         }
+                    }
                 }
                 if (difference.isEmpty()) {
                     notifyUser(
@@ -159,11 +164,11 @@ class MyWorker(val context: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private fun checkIfContainsElement(list : List<Movie?>, element : Movie?) : Boolean {
+    private fun checkIfContainsElement(list: List<Movie?>, element: Movie?): Boolean {
         val id = element?.id
         var result = false
-        for (movie in list){
-            if (movie?.id==id){
+        for (movie in list) {
+            if (movie?.id == id) {
                 result = true
             }
         }

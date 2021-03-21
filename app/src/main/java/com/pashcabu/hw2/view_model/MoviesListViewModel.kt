@@ -59,12 +59,15 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         .build()
 
     private fun startWorkManager() {
-        worker.enqueueUniquePeriodicWork("DB Background Periodic Update", ExistingPeriodicWorkPolicy.KEEP, periodicWorkRequest)
-//        worker.enqueue(singleWorkRequest) //for testing
+        worker.enqueueUniquePeriodicWork(
+            "DB Background Periodic Update",
+            ExistingPeriodicWorkPolicy.KEEP,
+            periodicWorkRequest
+        )
     }
 
     fun loadLiveData(endpoint: String?, currentPage: Int) {
-        if (endpoint == NOW_PLAYING){
+        if (endpoint == NOW_PLAYING) {
             startWorkManager()
         }
 
@@ -106,7 +109,7 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         } else {
             mutableMoviesList.value = movies ?: listOf()
         }
-        mutableLoadingState.value=false
+        mutableLoadingState.value = false
         return result
     }
 
