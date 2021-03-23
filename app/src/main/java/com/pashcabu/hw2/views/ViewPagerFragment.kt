@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.android.material.transition.MaterialElevationScale
 import com.pashcabu.hw2.R
 
 class ViewPagerFragment : Fragment() {
@@ -21,6 +22,9 @@ class ViewPagerFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        exitTransition = MaterialElevationScale(false).apply {
+            duration = 500
+        }
         return inflater.inflate(R.layout.fragment_view_pager, container, false)
     }
 

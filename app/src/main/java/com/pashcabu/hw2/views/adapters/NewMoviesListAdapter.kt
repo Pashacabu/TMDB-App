@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.ListAdapter
 import android.widget.RatingBar
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
@@ -30,11 +29,13 @@ class NewMoviesListAdapter(
 
     override fun onBindViewHolder(holder: NewMoviesListViewHolder, position: Int) {
         holder.onBindMovieData(list[position])
+        holder.itemView.transitionName = "transition+ ${list[position]?.id}"
+
         holder.itemView.setOnClickListener {
             list[position]?.id?.let { movieId ->
                 list[position]?.title?.let { movieTitle ->
                     openMovieListener.onMovieSelected(
-                        movieId, movieTitle
+                        movieId, movieTitle, holder.itemView
                     )
                 }
             }
@@ -147,6 +148,6 @@ class MoviesDiffCallback(
 
 
 interface MoviesListClickListener {
-    fun onMovieSelected(movieID: Int, title: String)
+    fun onMovieSelected(movieID: Int, title: String, view: View)
     fun onMovieLiked(movie: Movie)
 }

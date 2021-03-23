@@ -1,26 +1,26 @@
 package com.pashcabu.hw2.views
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.*
-import androidx.core.content.ContextCompat
+import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.transition.Transition
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.work.WorkManager
+import com.google.android.material.transition.MaterialArcMotion
+import com.google.android.material.transition.MaterialElevationScale
+import com.google.android.material.transition.MaterialFadeThrough
 import com.pashcabu.hw2.R
 import com.pashcabu.hw2.model.ConnectionChecker
 import com.pashcabu.hw2.model.data_classes.Database
@@ -35,9 +35,12 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
 
     private var openMovieListener: MoviesListClickListener = object : MoviesListClickListener {
-        override fun onMovieSelected(movieID: Int, title: String) {
+        override fun onMovieSelected(movieID: Int, title: String, view: View) {
+
             activity?.supportFragmentManager?.beginTransaction()
-                ?.add(R.id.fragment_container, MovieDetailsFragment.newInstance(movieID))
+                ?.setReorderingAllowed(true)
+                ?.replace(R.id.fragment_container, MovieDetailsFragment.newInstance(movieID))
+                ?.addSharedElement(view, "detailsFragment")
                 ?.addToBackStack(title)
                 ?.commit()
         }
@@ -65,7 +68,10 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        postponeEnterTransition()
+        view?.doOnPreDraw { startPostponedEnterTransition() }
         return inflater.inflate(R.layout.movies_list_fragment, container, false)
+
     }
 
     private fun findViews(view: View) {
@@ -105,6 +111,7 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         connectionViewModel =
             ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
         connectionChecker = ConnectionChecker(requireContext())
+
     }
 
     override fun onResume() {
@@ -191,6 +198,7 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         getEndpoint()
         findViews(view)
         loadData(endpoint)

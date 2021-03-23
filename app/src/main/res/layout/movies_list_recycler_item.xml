@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/movie_card_height"
     android:layout_gravity="center"
+    android:transitionName="moviesRecyclerItem"
     >
 
     <ImageView
@@ -28,7 +29,8 @@
         app:cardElevation="0dp"
         app:layout_constraintDimensionRatio="0.67"
         app:layout_constraintStart_toStartOf="@id/movie"
-        app:layout_constraintTop_toTopOf="@id/movie">
+        app:layout_constraintTop_toTopOf="@id/movie"
+        >
 
         <ImageView
             android:id="@+id/poster_image"
