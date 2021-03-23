@@ -20,4 +20,14 @@
         <item name="textAllCaps">false</item>
         <item name="android:textStyle">bold</item>
     </style>
+
+    <style name="MyButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:background">@color/background</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/movie_details_cast_header</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">@dimen/movie_details_storyline</item>
+        <item name="android:colorAccent">@color/background</item>
+    </style>
 </resources>

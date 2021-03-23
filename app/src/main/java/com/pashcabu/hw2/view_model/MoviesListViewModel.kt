@@ -45,22 +45,32 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         .setRequiresCharging(true)
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
+    private val constraints2 = Constraints.Builder()
+        .setRequiredNetworkType(NetworkType.CONNECTED)
+        .build()
     private val periodicWorkRequest =
         PeriodicWorkRequestBuilder<MyWorker>(8, TimeUnit.HOURS, 30, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
 
     private val singleWorkRequest = OneTimeWorkRequest.Builder(MyWorker::class.java)
-        .setInitialDelay(1L, TimeUnit.MINUTES)
+        .setInitialDelay(5L, TimeUnit.SECONDS)
+        .setConstraints(constraints2)
         .build()
 
     private fun startWorkManager() {
-//        Log.d("VM", "Stating work manager")
-        worker.enqueueUniquePeriodicWork("DB Background Periodic Update", ExistingPeriodicWorkPolicy.KEEP, periodicWorkRequest)
+        worker.enqueueUniquePeriodicWork(
+            "DB Background Periodic Update",
+            ExistingPeriodicWorkPolicy.KEEP,
+            periodicWorkRequest
+        )
     }
 
     fun loadLiveData(endpoint: String?, currentPage: Int) {
-        startWorkManager()
+        if (endpoint == NOW_PLAYING) {
+            startWorkManager()
+        }
+
         if (mutableMoviesList.value.isNullOrEmpty()) {
             if (endpoint == FAVOURITE) {
                 viewModelScope.launch {
@@ -85,19 +95,21 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
     }
 
     private suspend fun loadFromDB(endpoint: String?): Boolean {
+        mutableLoadingState.value = true
         var result = false
         genresAll = dbHandler.loadGenresFromDB()
         val movies = dbHandler.loadMoviesListFromDB(endpoint)
         if (endpoint != FAVOURITE) {
-            if (genresAll.isNotEmpty() && movies?.isNotEmpty() == true) {
-                mutableMoviesList.value = movies
+            if (genresAll.isNotEmpty() && !movies.isNullOrEmpty()) {
+                mutableMoviesList.value = movies!!
                 result = true
             } else {
-                mutableErrorState.value = "No data in DB!"
+                mutableErrorState.value = "No data in movies DB!"
             }
         } else {
-            mutableMoviesList.value = movies
+            mutableMoviesList.value = movies ?: listOf()
         }
+        mutableLoadingState.value = false
         return result
     }
 

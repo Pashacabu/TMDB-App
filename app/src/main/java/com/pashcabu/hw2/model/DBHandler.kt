@@ -108,18 +108,7 @@ class DBHandler(private val database: Database) {
                 database.movieDAO().deleteTopRated()
             }
         }
-        clearDetails()
-        clearGenres()
     }
-
-    private suspend fun clearDetails() {
-        database.detailsDAO().deleteAllDetails()
-    }
-
-    private suspend fun clearGenres() {
-        database.genresDAO().deleteGenres()
-    }
-
 
     suspend fun saveGenresToDB(list: List<GenresListItem?>) {
         val listToSave = converter.genresListRespToEntity(list)

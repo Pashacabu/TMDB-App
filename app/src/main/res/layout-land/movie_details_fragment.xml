@@ -50,6 +50,21 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@id/mainPoster" />
 
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/watchLaterButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/watch_later"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:textSize="@dimen/movie_details_storyline"
+                    android:paddingStart="@dimen/movies_list_item_tags"
+                    android:paddingEnd="@dimen/movies_list_item_tags"
+                    android:background="@drawable/watch_later_button"
+                    app:layout_constraintEnd_toEndOf="@id/paddingRight"
+                    app:layout_constraintBottom_toBottomOf="@id/pgRating"
+                    app:layout_constraintTop_toTopOf="@id/pgRating"/>
+
                 <ImageView
 
                     android:id="@+id/backArrow"
