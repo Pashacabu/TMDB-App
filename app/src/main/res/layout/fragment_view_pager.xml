@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     tools:context=".views.ViewPagerFragment"
     android:background="@color/background"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:id="@+id/movies_lists_tabs">
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"

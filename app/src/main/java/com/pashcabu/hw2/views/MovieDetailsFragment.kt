@@ -87,7 +87,6 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     var isRationaleShown = false
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         roomDB = Database.createDB(requireContext())
@@ -98,13 +97,13 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
         connectionChecker = ConnectionChecker(requireContext())
 
-        sharedElementEnterTransition = MaterialContainerTransform().apply {
-            duration = 500
-            scrimColor = Color.TRANSPARENT
-        }
-        sharedElementReturnTransition = MaterialFade().apply {
-            duration = 50000
-        }
+//        sharedElementEnterTransition = MaterialContainerTransform().apply {
+//            duration = 500
+//            scrimColor = Color.TRANSPARENT
+//        }
+//        sharedElementReturnTransition = MaterialContainerTransform().apply {
+//            duration = 50000
+//        }
     }
 
     override fun onCreateView(
@@ -143,9 +142,14 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         findViews(view)
+        val transName = arguments?.getString("transition_name")
+        swipeRefresh.transitionName = transName
         movieID = arguments?.getInt(TITLE) ?: 0
         loadMovieDetailsData()
+
+//        swipeRefresh.transitionName += movieID
         viewModel.loadingState.observe(this.viewLifecycleOwner, {
             showLoadingIndicator(it)
         })
@@ -349,12 +353,10 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
 
-
     companion object {
         fun newInstance(movieID: Int): MovieDetailsFragment {
             val arg = Bundle()
             arg.putInt(TITLE, movieID)
-//            arg.putString(ENDPOINT, endpoint)
             val fragment = MovieDetailsFragment()
             fragment.arguments = arg
             return fragment
@@ -368,8 +370,6 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         refreshMovieDetailData()
 
     }
-
-
 
 
 }

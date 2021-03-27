@@ -20,6 +20,7 @@ class NewMoviesListAdapter(
 
     private val list = ArrayList<Movie?>()
 
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewMoviesListViewHolder {
         return NewMoviesListViewHolder(
             LayoutInflater.from(parent.context)

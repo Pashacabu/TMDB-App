@@ -1,6 +1,7 @@
 package com.pashcabu.hw2.views
 
 import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +20,7 @@ import androidx.transition.Transition
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.work.WorkManager
 import com.google.android.material.transition.MaterialArcMotion
+import com.google.android.material.transition.MaterialContainerTransform
 import com.google.android.material.transition.MaterialElevationScale
 import com.google.android.material.transition.MaterialFadeThrough
 import com.pashcabu.hw2.R
@@ -36,13 +38,29 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     private var openMovieListener: MoviesListClickListener = object : MoviesListClickListener {
         override fun onMovieSelected(movieID: Int, title: String, view: View) {
+            val bundle = Bundle()
+            bundle.putString("transition_name", view.transitionName)
+            val detailsFragment = MovieDetailsFragment.newInstance(movieID)
+            detailsFragment.arguments = bundle
+            detailsFragment.sharedElementEnterTransition = MaterialContainerTransform().apply {
+                drawingViewId = R.id.details_swipe_refresh
+                duration = 5000
+                scrimColor = Color.TRANSPARENT
+            }
+            detailsFragment.sharedElementReturnTransition = MaterialContainerTransform().apply {
+                drawingViewId = R.id.movies_lists_tabs
+                duration = 5000
+                scrimColor = Color.TRANSPARENT
+            }
 
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.setReorderingAllowed(true)
-                ?.replace(R.id.fragment_container, MovieDetailsFragment.newInstance(movieID))
-                ?.addSharedElement(view, "detailsFragment")
-                ?.addToBackStack(title)
-                ?.commit()
+                activity?.supportFragmentManager?.beginTransaction()
+                    ?.setReorderingAllowed(true)
+                    ?.replace(R.id.fragment_container,
+                        detailsFragment
+                    )
+                    ?.addToBackStack(title)
+                    ?.addSharedElement(view, view.transitionName)
+                    ?.commit()
         }
 
         override fun onMovieLiked(movie: Movie) {
