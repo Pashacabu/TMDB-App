@@ -28,7 +28,7 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
     private val mutableConnectionState = MutableLiveData<Boolean>()
 
 
-    val movieList: LiveData<List<Movie?>> get() = mutableMoviesList
+    val moviesList: LiveData<List<Movie?>> get() = mutableMoviesList
     val amountOfPages: LiveData<Int> get() = mutableAmountOfPages
     val loadingState: LiveData<Boolean> get() = mutableLoadingState
     val errorState: LiveData<String> get() = mutableErrorState
@@ -99,6 +99,11 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         var result = false
         genresAll = dbHandler.loadGenresFromDB()
         val movies = dbHandler.loadMoviesListFromDB(endpoint)
+        val listOfFavourite = converter.entityItemsListToMovieList(
+            database.movieDAO().getListOfFavourite()
+        )
+        movies?.forEach { checkIfInFavourite(it, listOfFavourite) }
+        loadedList.addAll(movies ?: listOf())
         if (endpoint != FAVOURITE) {
             if (genresAll.isNotEmpty() && !movies.isNullOrEmpty()) {
                 mutableMoviesList.value = movies!!
@@ -205,7 +210,7 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
                 pageToLoad
             )
             mutableAmountOfPages.value = newListOfMovies.totalPages ?: 0
-            val newListWithGenres =
+            var newListWithGenres =
                 newListOfMovies.results?.map {
                     converter.genresIntToStrings(
                         it,
@@ -216,12 +221,20 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
                 converter.entityItemsListToMovieList(
                     database.movieDAO().getListOfFavourite()
                 )
-            newListWithGenres.forEach { checkIfInFavourite(it, listOfFavourite) }
+            newListWithGenres = updateBasedOnListOfFavourite(newListWithGenres, listOfFavourite)
             dbHandler.saveMoviesListToDB(endpoint, newListWithGenres)
             loadedList.addAll(newListWithGenres)
             hideError()
             mutableMoviesList.postValue(loadedList)
             mutableLoadingState.postValue(false)
+            delay(7000)
+            Log.d("VM", "changing title")
+            loadedList[1]?.title = "????????????"
+//            loadedList[0]?.id = loadedList[0]?.id?.plus(1)
+            val newList = loadedList.subList(1,4)
+            Log.d("VM", "changing list")
+            mutableMoviesList.postValue(newList)
+//            mutableMoviesList.postValue(listOf())
         } catch (e: Exception) {
             e.printStackTrace()
             mutableLoadingState.postValue(false)
@@ -229,14 +242,53 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         }
     }
 
+    private fun updateBasedOnListOfFavourite( list : List<Movie?>, listOfFavourite: List<Movie?>) : List<Movie?>{
+        list.forEach { movieInCurrent ->
+            val found = listOfFavourite.filter { it?.id == movieInCurrent?.id }
+            movieInCurrent?.addedToFavourite = !found.isNullOrEmpty()
+        }
+        return list
+    }
+
     private fun checkIfInFavourite(movie: Movie?, listOfFavourite: List<Movie?>): Movie? {
         val id = movie?.id
-        for (item in listOfFavourite) {
-            if (item?.id == id) {
-                movie?.addedToFavourite = true
-            }
-        }
+        val found = listOfFavourite.filter { it?.id == id }
+        Log.d("checkIfInFav", found.size.toString())
+        movie?.addedToFavourite = !found.isNullOrEmpty()
         return movie
+    }
+
+    fun updateIfInFavourite(endpoint: String?) {
+        viewModelScope.launch {
+            val listOfFavourite = converter.entityItemsListToMovieList(
+                database.movieDAO().getListOfFavourite()
+            )
+//            loadedList.forEach { checkIfInFavourite(it, listOfFavourite)
+//                if (it != null) {
+//                    dbHandler.updateTable(endpoint, it)
+//                }
+//            }
+////            Log.d("VM", listOfFavourite.size.toString())
+//            if (loadedList.isNotEmpty()) {
+//                loadedList.forEach {
+//                    checkIfInFavourite(it, listOfFavourite)
+//                    if (it != null) {
+//                        dbHandler.updateTable(endpoint, it)
+//                    }
+//                }
+//            }
+            val list = updateBasedOnListOfFavourite(loadedList, listOfFavourite)
+            list.forEach {
+                if (it != null) {
+                    dbHandler.updateTable(endpoint, it)
+                }
+            }
+//            loadedList.clear()
+//            loadedList.addAll(list)
+            mutableMoviesList.postValue(list)
+//            loadedList.clear()
+//            loadedList.addAll(list)
+        }
     }
 
     fun loadMore(endpoint: String?, pageToLoad: Int) {

@@ -50,7 +50,7 @@ class DBHandler(private val database: Database) {
         updateTable(endpoint, movie)
     }
 
-    private suspend fun updateTable(endpoint: String?, movie: Movie) {
+    suspend fun updateTable(endpoint: String?, movie: Movie) {
         when (endpoint) {
             NOW_PLAYING -> movie.id?.let {
                 database.movieDAO().updateNowPlaying(it, movie.addedToFavourite)

@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.CalendarContract
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -96,14 +97,6 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         connectionViewModel =
             ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
         connectionChecker = ConnectionChecker(requireContext())
-
-//        sharedElementEnterTransition = MaterialContainerTransform().apply {
-//            duration = 500
-//            scrimColor = Color.TRANSPARENT
-//        }
-//        sharedElementReturnTransition = MaterialContainerTransform().apply {
-//            duration = 50000
-//        }
     }
 
     override fun onCreateView(
@@ -142,13 +135,12 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        postponeEnterTransition()
+        view.doOnPreDraw {
         findViews(view)
-        val transName = arguments?.getString("transition_name")
-        swipeRefresh.transitionName = transName
+        swipeRefresh.transitionName = arguments?.getString("transition_name")
         movieID = arguments?.getInt(TITLE) ?: 0
         loadMovieDetailsData()
-
 //        swipeRefresh.transitionName += movieID
         viewModel.loadingState.observe(this.viewLifecycleOwner, {
             showLoadingIndicator(it)
@@ -164,8 +156,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             connectionViewModel.setConnectionState(it)
         })
         connectionViewModel.connectionState.observe(this.viewLifecycleOwner, connectionObserver)
-        postponeEnterTransition()
-        view.doOnPreDraw { startPostponedEnterTransition() }
+            startPostponedEnterTransition() }
     }
 
     private fun showLoadingIndicator(loadingState: Boolean) {

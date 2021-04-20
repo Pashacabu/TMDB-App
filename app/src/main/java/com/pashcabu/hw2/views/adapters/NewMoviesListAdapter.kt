@@ -1,9 +1,12 @@
 package com.pashcabu.hw2.views.adapters
 
+import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
@@ -18,7 +21,8 @@ class NewMoviesListAdapter(
     private val openMovieListener: MoviesListClickListener,
 ) : RecyclerView.Adapter<NewMoviesListViewHolder>() {
 
-    private val list = ArrayList<Movie?>()
+    private var list: MutableList<Movie?> = mutableListOf()
+    var animation: Int? = null
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewMoviesListViewHolder {
@@ -28,9 +32,36 @@ class NewMoviesListAdapter(
         )
     }
 
+    //    override fun onBindViewHolder(
+//        holder: NewMoviesListViewHolder,
+//        position: Int,
+//        payloads: MutableList<Any>
+//    ) {
+//        if (payloads.isNotEmpty()){
+////            var o = Bundle()
+//            val o= payloads[0] as Bundle
+//            for (string in o.keySet()){
+//                if (string == "addedToFavourite"){
+//                    val liked = o.getBoolean("addedToFavourite")
+//                    if (liked){
+//                        holder.inFavourite.setImageResource(R.drawable.like_positive)
+//                    } else {
+//                        holder.inFavourite.setImageResource(R.drawable.like)
+//                    }
+//                }
+//                if (string == "title"){
+//                    holder.title.text = o.getCharSequence("title")
+//                }
+//            }
+//        } else {
+//            onBindViewHolder(holder, position)
+//        }
+//    }
     override fun onBindViewHolder(holder: NewMoviesListViewHolder, position: Int) {
         holder.onBindMovieData(list[position])
         holder.itemView.transitionName = "transition+ ${list[position]?.id}"
+        holder.itemView.animation =
+            animation?.let { AnimationUtils.loadAnimation(holder.itemView.context, it) }
 
         holder.itemView.setOnClickListener {
             list[position]?.id?.let { movieId ->
@@ -48,8 +79,8 @@ class NewMoviesListAdapter(
             } else {
                 holder.inFavourite.setImageResource(R.drawable.like)
             }
-            list[holder.adapterPosition]?.let { it1 ->
-                openMovieListener.onMovieLiked(it1)
+            list[holder.adapterPosition]?.let { movie ->
+                openMovieListener.onMovieLiked(movie)
             }
         }
     }
@@ -59,16 +90,26 @@ class NewMoviesListAdapter(
     }
 
     fun loadMovies(newMovies: List<Movie?>) {
-        val callback = MoviesDiffCallback(this.list, newMovies)
+        val callback = MoviesDiffCallback(list, newMovies)
         val result = DiffUtil.calculateDiff(callback)
         list.clear()
         list.addAll(newMovies)
         result.dispatchUpdatesTo(this)
     }
 
+    inner class AnimationScrollListener() : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            animation = if (dy > 0) {
+                R.anim.recycler_animation_scroll_down
+            } else {
+                R.anim.recycler_animation_scroll_up
+            }
+        }
+    }
 }
 
-class MyScrollListener(private val callback:() -> Unit) : RecyclerView.OnScrollListener() {
+class MyScrollListener(private val callback: () -> Unit) : RecyclerView.OnScrollListener() {
     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
         super.onScrolled(recyclerView, dx, dy)
         if (dy > 0) {
@@ -85,13 +126,12 @@ class MyScrollListener(private val callback:() -> Unit) : RecyclerView.OnScrollL
 }
 
 class NewMoviesListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-    private val title: TextView = view.findViewById(R.id.title)
+    val title: TextView = view.findViewById(R.id.title)
     private val pgRating: TextView = view.findViewById(R.id.pgRating)
     private val rating: RatingBar = view.findViewById(R.id.rating)
     private val tagLine: TextView = view.findViewById(R.id.tag_line)
     private val reviews: TextView = view.findViewById(R.id.reviews)
     val inFavourite: ImageView = view.findViewById(R.id.like)
-
 
     //        private val duration: TextView = view.findViewById(R.id.duration)
     private val poster: ImageView = view.findViewById(R.id.poster_image)
@@ -125,14 +165,16 @@ class NewMoviesListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 }
 
 class MoviesDiffCallback(
-    private val oldList: List<Movie?>?,
+    private val oldList: MutableList<Movie?>?,
     private val newList: List<Movie?>?
 ) : DiffUtil.Callback() {
     override fun getOldListSize(): Int {
+//        Log.d("DIFFUTILLS", oldList?.get(0)?.title.toString())
         return oldList?.size ?: 0
     }
 
     override fun getNewListSize(): Int {
+//        Log.d("DIFFUTILLS", newList?.get(0)?.title.toString())
         return newList?.size ?: 0
     }
 
@@ -143,7 +185,24 @@ class MoviesDiffCallback(
     }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        oldList?.get(oldItemPosition)?.title?.let { Log.d("DIFFUTILLS", it) }
+        newList?.get(newItemPosition)?.title?.let { Log.d("DIFFUTILLS", it) }
         return oldList?.get(oldItemPosition) == newList?.get(newItemPosition)
+    }
+
+    override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
+        return super.getChangePayload(oldItemPosition, newItemPosition)
+//        val oldMovie = oldList?.get(oldItemPosition)
+//        val newMovie =newList?.get(newItemPosition)
+//
+//        val difference = Bundle()
+//        if (oldMovie?.addedToFavourite!=newMovie?.addedToFavourite){
+//            newMovie?.addedToFavourite?.let { difference.putBoolean("addedToFavourite", it) }
+//        }
+//        if (oldMovie?.title!=newMovie?.title){
+//            newMovie?.title?.let { difference.putString("title", it) }
+//        }
+//        return difference
     }
 }
 
