@@ -1,7 +1,6 @@
 package com.pashcabu.hw2.view_model
 
 
-import android.util.Log
 import androidx.lifecycle.*
 import androidx.work.*
 import com.pashcabu.hw2.model.MyWorker
@@ -24,18 +23,20 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
     private val mutableAmountOfPages = MutableLiveData<Int>()
     private val mutableLoadingState: MutableLiveData<Boolean> = MutableLiveData(false)
     private val mutableErrorState: MutableLiveData<String> = MutableLiveData(NO_ERROR)
-    private val mutablePageStepBack = MutableLiveData(0)
+    private val mutablePageStep = MutableLiveData(1)
     private val mutableConnectionState = MutableLiveData<Boolean>()
-
 
     val moviesList: LiveData<List<Movie?>> get() = mutableMoviesList
     val amountOfPages: LiveData<Int> get() = mutableAmountOfPages
     val loadingState: LiveData<Boolean> get() = mutableLoadingState
     val errorState: LiveData<String> get() = mutableErrorState
-    val pageStepBack: LiveData<Int> get() = mutablePageStepBack
+    val pageStep: LiveData<Int> get() = mutablePageStep
 
     private var genresAll: MutableMap<Int?, String?> = mutableMapOf()
     private val loadedList: MutableList<Movie?> = mutableListOf()
+    private var lastSearch = String()
+    private var debounceSearchQuery = String()
+    private var lastPage = 0
 
     private val network: NetworkModule.TMDBInterface = NetworkModule().apiService
     private val converter = ClassConverter()
@@ -67,27 +68,62 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
     }
 
     fun loadLiveData(endpoint: String?, currentPage: Int) {
-        if (endpoint == NOW_PLAYING) {
-            startWorkManager()
-        }
-
+        startWorkManager()
         if (mutableMoviesList.value.isNullOrEmpty()) {
-            if (endpoint == FAVOURITE) {
-                viewModelScope.launch {
-                    loadFromDB(endpoint)
-                }
-            } else {
-                viewModelScope.launch {
-                    var time = 0
-                    while (mutableConnectionState.value == null) {
-                        delay(10) //mutableConnectionState.value changes to actual with a delay, waiting for network status
-                        time += 10
-                        if (time >= 30) break
-                    }
-                    if (mutableConnectionState.value == true) {
-                        loadFromAPI(endpoint, currentPage)
-                    } else {
+            when (endpoint) {
+                FAVOURITE -> {
+                    viewModelScope.launch {
                         loadFromDB(endpoint)
+                    }
+                }
+                SEARCH -> {
+                }
+                else -> {
+                    viewModelScope.launch {
+                        var time = 0
+                        while (mutableConnectionState.value == null) {
+                            delay(10) //mutableConnectionState.value changes to actual with a delay, waiting for network status
+                            time += 10
+                            if (time >= 30) break
+                        }
+                        if (mutableConnectionState.value == true) {
+                            loadFromAPI(endpoint, currentPage, isLoadingMore = false)
+                        } else {
+                            loadFromDB(endpoint)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    fun search(query: String, pageToLoad: Int, isLoadingMore: Boolean) {
+        when (query != lastSearch) {
+            true -> {
+                viewModelScope.launch {
+                    if (query == "") {
+                        mutableMoviesList.postValue(listOf())
+                        delay(500)
+                        loadedList.clear()
+                        lastSearch = query
+                        debounceSearchQuery = String()
+                    } else {
+                        debounceSearchQuery = query
+                        delay(500) //Debounce delay
+                        if (query == debounceSearchQuery) {
+                            loadFromAPI(endpoint = SEARCH, pageToLoad, isLoadingMore, query)
+                            lastSearch = query
+                        }
+
+                    }
+
+                }
+            }
+            false -> {
+                if (isLoadingMore) {
+                    viewModelScope.launch {
+                        loadFromAPI(endpoint = SEARCH, pageToLoad, isLoadingMore, lastSearch)
                     }
                 }
             }
@@ -95,7 +131,9 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
     }
 
     private suspend fun loadFromDB(endpoint: String?): Boolean {
-        mutableLoadingState.value = true
+        if (mutableLoadingState.value == false) {
+            mutableLoadingState.postValue(true)
+        }
         var result = false
         genresAll = dbHandler.loadGenresFromDB()
         val movies = dbHandler.loadMoviesListFromDB(endpoint)
@@ -106,21 +144,26 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         loadedList.addAll(movies ?: listOf())
         if (endpoint != FAVOURITE) {
             if (genresAll.isNotEmpty() && !movies.isNullOrEmpty()) {
-                mutableMoviesList.value = movies!!
+                mutableMoviesList.postValue(movies!!)
                 result = true
             } else {
                 mutableErrorState.value = "No data in movies DB!"
             }
         } else {
-            mutableMoviesList.value = movies ?: listOf()
+            mutableMoviesList.postValue(movies ?: listOf())
         }
-        mutableLoadingState.value = false
+        mutableLoadingState.postValue(false)
         return result
     }
 
-    private suspend fun loadFromAPI(endpoint: String?, currentPage: Int) {
+    private suspend fun loadFromAPI(
+        endpoint: String?,
+        currentPage: Int,
+        isLoadingMore: Boolean,
+        query: String = ""
+    ) {
         loadGenresFromAPI()
-        loadMoviesFromAPI(endpoint, currentPage)
+        loadMoviesFromAPI(endpoint, currentPage, isLoadingMore, query)
     }
 
     fun onLikedButtonPressed(endpoint: String?, movie: Movie) {
@@ -128,87 +171,97 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
             if (!movie.addedToFavourite) {
                 movie.addedToFavourite = true
                 dbHandler.addToFavourite(endpoint, movie)
-                loadedList.forEach {
-                    if (it?.id == movie.id) {
-                        it?.addedToFavourite = true
-                    }
-                    mutableMoviesList.value = loadedList
-                }
             } else {
                 movie.addedToFavourite = false
                 if (endpoint == FAVOURITE) {
-                    movie.id?.let {
-                        dbHandler.deleteFromFavourite(endpoint, movie)
-                        loadFromDB(endpoint)
-                    }
+                    dbHandler.deleteFromFavourite(endpoint, movie)
+                    loadFromDB(endpoint)
                 }
                 dbHandler.deleteFromFavourite(endpoint, movie)
-                loadedList.forEach {
-                    if (it?.id == movie.id) {
-                        it?.addedToFavourite = false
-                    }
-                }
             }
         }
 
     }
 
     fun refreshMovieList(endpoint: String?, currentPage: Int) {
-        if (endpoint == FAVOURITE) {
-            viewModelScope.launch {
-                mutableLoadingState.value = true
-                loadFromDB(endpoint)
-                mutableLoadingState.value = false
-            }
-        } else {
-            viewModelScope.launch {
-                if (mutableConnectionState.value == true) {
-                    try {
-                        loadedList.clear()
-                        dbHandler.clearDBTable(endpoint)
-                        loadFromAPI(endpoint, currentPage)
-                    } catch (e: Exception) {
-                        showError()
-                    }
-                } else {
+        when (endpoint) {
+            FAVOURITE -> {
+                viewModelScope.launch {
+                    mutableLoadingState.postValue(true)
                     loadFromDB(endpoint)
+                    mutableLoadingState.postValue(false)
+                }
+            }
+            SEARCH -> {
+                viewModelScope.launch {
+                    if (mutableConnectionState.value == true) {
+                        try {
+                            loadedList.clear()
+                            loadFromAPI(endpoint, currentPage, isLoadingMore = false, lastSearch)
+                        } catch (e: Exception) {
+                            showError()
+                        }
+                    }
+                }
+            }
+            else -> {
+                viewModelScope.launch {
+                    if (mutableConnectionState.value == true) {
+                        try {
+                            loadedList.clear()
+                            dbHandler.clearDBTable(endpoint)
+                            loadFromAPI(endpoint, currentPage, isLoadingMore = false)
+                        } catch (e: Exception) {
+                            showError()
+                        }
+                    } else {
+                        loadFromDB(endpoint)
+                    }
                 }
             }
         }
     }
 
     private fun showError() {
-        mutableErrorState.value = "Connection error!"
+        mutableErrorState.postValue("Connection error!")
     }
 
     private fun hideError() {
-        mutableErrorState.value = NO_ERROR
+        mutableErrorState.postValue(NO_ERROR)
     }
 
     private suspend fun loadGenresFromAPI() {
         val list: List<GenresListItem?>
         try {
-            mutableLoadingState.value = true
             list = network.getGenres(api_key).genres ?: listOf()
             genresAll.putAll(list.associateBy({ it?.id }, { it?.name }))
             dbHandler.saveGenresToDB(list)
             hideError()
-            mutableLoadingState.value = false
         } catch (e: Exception) {
             e.printStackTrace()
-            mutableLoadingState.value = false
+            mutableLoadingState.postValue(false)
             showError()
         }
     }
 
-    private suspend fun loadMoviesFromAPI(endpoint: String?, pageToLoad: Int) {
+    private suspend fun loadMoviesFromAPI(
+        endpoint: String?,
+        pageToLoad: Int,
+        isLoadingMore: Boolean,
+        query: String = ""
+    ) {
         try {
-            mutableLoadingState.postValue(true)
-            val newListOfMovies = network.getMoviesList(
-                endpoint,
-                api_key,
-                pageToLoad
-            )
+            if (mutableLoadingState.value == false) {
+                mutableLoadingState.postValue(true)
+            }
+            val newListOfMovies = when (endpoint) {
+                SEARCH -> network.search(api_key, query, pageToLoad)
+                else -> network.getMoviesList(
+                    endpoint,
+                    api_key,
+                    pageToLoad
+                )
+            }
             mutableAmountOfPages.value = newListOfMovies.totalPages ?: 0
             var newListWithGenres =
                 newListOfMovies.results?.map {
@@ -223,18 +276,19 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
                 )
             newListWithGenres = updateBasedOnListOfFavourite(newListWithGenres, listOfFavourite)
             dbHandler.saveMoviesListToDB(endpoint, newListWithGenres)
+            if (!isLoadingMore) {
+                loadedList.clear()
+            }
             loadedList.addAll(newListWithGenres)
             hideError()
-            mutableMoviesList.postValue(loadedList)
             mutableLoadingState.postValue(false)
-            delay(7000)
-            Log.d("VM", "changing title")
-            loadedList[1]?.title = "????????????"
-//            loadedList[0]?.id = loadedList[0]?.id?.plus(1)
-            val newList = loadedList.subList(1,4)
-            Log.d("VM", "changing list")
+            val newList = mutableListOf<Movie?>()
+            for (movie in loadedList) {
+                newList.add(movie?.copy())
+            }
             mutableMoviesList.postValue(newList)
-//            mutableMoviesList.postValue(listOf())
+            loadedList.clear()
+            loadedList.addAll(newList)
         } catch (e: Exception) {
             e.printStackTrace()
             mutableLoadingState.postValue(false)
@@ -242,7 +296,10 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         }
     }
 
-    private fun updateBasedOnListOfFavourite( list : List<Movie?>, listOfFavourite: List<Movie?>) : List<Movie?>{
+    private fun updateBasedOnListOfFavourite(
+        list: List<Movie?>,
+        listOfFavourite: List<Movie?>
+    ): List<Movie?> {
         list.forEach { movieInCurrent ->
             val found = listOfFavourite.filter { it?.id == movieInCurrent?.id }
             movieInCurrent?.addedToFavourite = !found.isNullOrEmpty()
@@ -253,7 +310,6 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
     private fun checkIfInFavourite(movie: Movie?, listOfFavourite: List<Movie?>): Movie? {
         val id = movie?.id
         val found = listOfFavourite.filter { it?.id == id }
-        Log.d("checkIfInFav", found.size.toString())
         movie?.addedToFavourite = !found.isNullOrEmpty()
         return movie
     }
@@ -263,41 +319,42 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
             val listOfFavourite = converter.entityItemsListToMovieList(
                 database.movieDAO().getListOfFavourite()
             )
-//            loadedList.forEach { checkIfInFavourite(it, listOfFavourite)
-//                if (it != null) {
-//                    dbHandler.updateTable(endpoint, it)
-//                }
-//            }
-////            Log.d("VM", listOfFavourite.size.toString())
-//            if (loadedList.isNotEmpty()) {
-//                loadedList.forEach {
-//                    checkIfInFavourite(it, listOfFavourite)
-//                    if (it != null) {
-//                        dbHandler.updateTable(endpoint, it)
-//                    }
-//                }
-//            }
-            val list = updateBasedOnListOfFavourite(loadedList, listOfFavourite)
-            list.forEach {
+            val list = mutableListOf<Movie>()
+            for (item in loadedList) {
+                list.add(item?.copy() ?: Movie())
+            }
+            val updatedList = updateBasedOnListOfFavourite(list, listOfFavourite)
+            updatedList.forEach {
                 if (it != null) {
                     dbHandler.updateTable(endpoint, it)
                 }
             }
-//            loadedList.clear()
-//            loadedList.addAll(list)
-            mutableMoviesList.postValue(list)
-//            loadedList.clear()
-//            loadedList.addAll(list)
+            mutableMoviesList.postValue(updatedList)
+            loadedList.clear()
+            mutableMoviesList.value?.let { loadedList.addAll(it) }
         }
     }
 
     fun loadMore(endpoint: String?, pageToLoad: Int) {
-        if (endpoint != FAVOURITE) {
-            viewModelScope.launch {
-                loadMoviesFromAPI(endpoint, pageToLoad)
-                if (mutableErrorState.value != NO_ERROR) {
-                    mutablePageStepBack.value = -1
-                    mutablePageStepBack.value = 0
+        when (endpoint) {
+            SEARCH -> {
+                search(lastSearch, pageToLoad, true)
+                if (mutableErrorState.value == NO_ERROR) {
+                    mutablePageStep.value = pageToLoad
+                } else {
+                    mutablePageStep.value = pageToLoad - 1
+                }
+            }
+            FAVOURITE -> {
+            }
+            else -> {
+                viewModelScope.launch {
+                    loadMoviesFromAPI(endpoint, pageToLoad, isLoadingMore = true)
+                    if (mutableErrorState.value == NO_ERROR) {
+                        mutablePageStep.value = pageToLoad
+                    } else {
+                        mutablePageStep.value = pageToLoad - 1
+                    }
                 }
             }
         }
@@ -314,6 +371,7 @@ const val POPULAR = "popular"
 const val TOP_RATED = "top_rated"
 const val UPCOMING = "upcoming"
 const val FAVOURITE = "favourite"
+const val SEARCH = "search"
 const val NO_ERROR = "No Errors"
 
 

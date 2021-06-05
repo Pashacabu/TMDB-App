@@ -68,6 +68,16 @@ class NetworkModule {
             @Query("api_key") api_key: String
         ): CastResponse
 
+        @GET("movie/latest")
+        suspend fun getLatest(@Query("api_key") api_key: String): MovieDetailsResponse
+
+        @GET("search/movie")
+        suspend fun search(
+            @Query("api_key") api_key: String,
+            @Query("query") str: String,
+            @Query("page") page: Int
+        ): MovieListResponse
+
     }
 
     companion object {

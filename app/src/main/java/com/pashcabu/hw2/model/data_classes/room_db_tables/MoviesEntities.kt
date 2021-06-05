@@ -67,13 +67,16 @@ class Converters {
 
     @TypeConverter
     fun stringToListOfInt( str: String?) : List<Int?> {
-        val list=str?.split("/")
         val result= mutableListOf<Int?>()
-        if (!list.isNullOrEmpty()) {
-            for (i in list.indices){
-                result.add(list[i].toInt())
+        if (!str.isNullOrEmpty()){
+            val list= str.split("/")
+            if (!list.isNullOrEmpty()) {
+                for (i in list.indices){
+                    result.add(list[i].toInt())
+                }
             }
         }
+
         return result
     }
 }

@@ -49,7 +49,7 @@ class ConnectionChecker(context: Context) : LiveData<Boolean>() {
         }
 
         override fun onLost(network: Network) {
-            super.onLost(network)
+//            super.onLost(network)
             Log.d("CCH", "cellular lost")
             cellularIsOn = false
             postActualConnectivityStatus()

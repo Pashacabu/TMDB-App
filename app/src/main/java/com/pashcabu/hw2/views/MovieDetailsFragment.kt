@@ -5,8 +5,9 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
+import android.content.res.Configuration
 import android.net.Uri
+import android.opengl.Visibility
 import android.os.Bundle
 import android.provider.CalendarContract
 import android.provider.Settings
@@ -19,6 +20,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
+import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -26,10 +28,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
-import com.google.android.material.transition.MaterialContainerTransform
-import com.google.android.material.transition.MaterialElevationScale
-import com.google.android.material.transition.MaterialFade
-import com.google.android.material.transition.MaterialSharedAxis
 import com.pashcabu.hw2.*
 import com.pashcabu.hw2.model.ConnectionChecker
 import com.pashcabu.hw2.model.data_classes.networkResponses.CastResponse
@@ -104,6 +102,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         return inflater.inflate(R.layout.movie_details_fragment, container, false)
     }
 
@@ -137,26 +136,39 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         super.onViewCreated(view, savedInstanceState)
         postponeEnterTransition()
         view.doOnPreDraw {
-        findViews(view)
-        swipeRefresh.transitionName = arguments?.getString("transition_name")
-        movieID = arguments?.getInt(TITLE) ?: 0
-        loadMovieDetailsData()
+            findViews(view)
+            setupAdapter()
+            swipeRefresh.transitionName = arguments?.getString("transition_name")
+            arguments?.getString("transition_name")?.let { it1 -> Log.d("DETAILS", it1) }
+            movieID = arguments?.getInt(TITLE) ?: 0
+            loadMovieDetailsData()
 //        swipeRefresh.transitionName += movieID
-        viewModel.loadingState.observe(this.viewLifecycleOwner, {
-            showLoadingIndicator(it)
-        })
-        viewModel.movieDetailsData.observe(this.viewLifecycleOwner, {
-            updateMovieData(it)
-        })
-        viewModel.castData.observe(this.viewLifecycleOwner, {
-            updateActorsData(it)
-        })
-        viewModel.errorState.observe(this.viewLifecycleOwner, errorsObserver)
-        connectionChecker?.observe(this.viewLifecycleOwner, {
-            connectionViewModel.setConnectionState(it)
-        })
-        connectionViewModel.connectionState.observe(this.viewLifecycleOwner, connectionObserver)
-            startPostponedEnterTransition() }
+            viewModel.loadingState.observe(this.viewLifecycleOwner, {
+                showLoadingIndicator(it)
+            })
+            viewModel.movieDetailsData.observe(this.viewLifecycleOwner, {
+                updateMovieData(it)
+            })
+            viewModel.castData.observe(this.viewLifecycleOwner, {
+                updateActorsData(it)
+            })
+            viewModel.errorState.observe(this.viewLifecycleOwner, errorsObserver)
+            connectionChecker?.observe(this.viewLifecycleOwner, {
+                connectionViewModel.setConnectionState(it)
+            })
+            connectionViewModel.connectionState.observe(this.viewLifecycleOwner, connectionObserver)
+            when (movieID){
+                0-> {
+                    backArrow?.visibility = View.GONE
+                    backButton?.visibility = View.GONE
+                }
+                else -> {
+                    backArrow?.visibility = View.VISIBLE
+                    backButton?.visibility = View.VISIBLE
+                }
+            }
+            startPostponedEnterTransition()
+        }
     }
 
     private fun showLoadingIndicator(loadingState: Boolean) {
@@ -221,13 +233,28 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         backButton = view.findViewById<TextView?>(R.id.backButton)?.apply {
             setOnClickListener { movieDetailsClickListener?.onBackArrowPressed() }
         }
-        actorsRecyclerView.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        actorsRecyclerView.addItemDecoration(Decorator().itemSpacing(view, 5))
         watchLaterBtn = view.findViewById(R.id.watchLaterButton)
         watchLaterBtn.setOnClickListener {
             checkForPermissionsAndSchedule()
         }
+    }
+
+    private fun setupAdapter() {
+        actorsRecyclerView.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        val orientation = resources.configuration.orientation
+        val width = resources.displayMetrics.widthPixels
+        when (orientation){
+            Configuration.ORIENTATION_PORTRAIT ->{
+                actorsRecyclerView.addItemDecoration(Decorator().itemSpacing((width*0.1/6).toInt()))
+                actorsRecyclerView.setPadding((width*0.1/6).toInt())
+            }
+            Configuration.ORIENTATION_LANDSCAPE ->{
+                actorsRecyclerView.addItemDecoration(Decorator().itemSpacing((width*0.1/12).toInt()))
+                actorsRecyclerView.setPadding((width*0.1/12).toInt())
+            }
+        }
+
     }
 
     private fun checkForPermissionsAndSchedule() {

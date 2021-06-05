@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/offline_warning">
+        app:layout_constraintTop_toBottomOf="@id/offline_warning">
 
 
         <androidx.recyclerview.widget.RecyclerView

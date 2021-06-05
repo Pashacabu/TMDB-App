@@ -1,6 +1,7 @@
 package com.pashcabu.hw2.views.adapters
 
 
+import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +21,12 @@ class MovieDetailsAdapter(private var movieDetailsActorsClickListener: MovieDeta
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActorsViewHolder {
         val view =
             LayoutInflater.from(parent.context).inflate(R.layout.cast_recycler_item, parent, false)
+        val orientation = parent.context.resources.configuration.orientation
+        val width = parent.context.resources.displayMetrics.widthPixels
+        when (orientation){
+            Configuration.ORIENTATION_PORTRAIT -> view.layoutParams.width = (width*0.9/3.5).toInt()
+            Configuration.ORIENTATION_LANDSCAPE -> view.layoutParams.width = (width*0.9/5.5).toInt()
+        }
         return ActorsViewHolder(view)
     }
 

@@ -22,7 +22,7 @@ class NewMoviesListAdapter(
 ) : RecyclerView.Adapter<NewMoviesListViewHolder>() {
 
     private var list: MutableList<Movie?> = mutableListOf()
-    var animation: Int? = null
+    private var animation: Int? = null
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewMoviesListViewHolder {

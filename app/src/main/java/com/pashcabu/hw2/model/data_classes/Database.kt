@@ -9,7 +9,9 @@ import com.pashcabu.hw2.model.data_classes.dAOs.MoviesListDAO
 import com.pashcabu.hw2.model.data_classes.room_db_tables.*
 
 @Database(
-    entities = [DBNowPlaying::class, DBPopular::class, DBTopRated::class, DBUpcoming::class, DBGenres::class, DBFavourite::class, DBMovieDetails::class, DBCastItem::class, DBCrewItem::class],
+    entities = [DBNowPlaying::class, DBPopular::class, DBTopRated::class, DBUpcoming::class,
+        DBGenres::class, DBFavourite::class, DBMovieDetails::class, DBCastItem::class,
+        DBCrewItem::class, DBLatestMovieDetails::class],
     version = 1
 )
 @TypeConverters(Converters::class)

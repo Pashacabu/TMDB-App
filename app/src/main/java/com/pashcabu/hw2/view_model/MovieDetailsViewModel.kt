@@ -42,22 +42,68 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
                     if (time >= 30) break
                 }
                 if (mutableConnectionState.value == true) {
-                    loadMovieDataFromAPI(id)
+                    when (id) {
+                        0 -> getLatest()
+                        else -> loadMovieDataFromAPI(id)
+                    }
+//                    loadMovieDataFromAPI(id)
                 } else {
                     loadMovieDataFromDB(id)
-                    mutableErrorState.value="Offline data"
+                    mutableErrorState.value = "Offline data"
                 }
             }
         }
     }
 
+    private suspend fun getLatest() {
+        if (mutableLoadingState.value == false) {
+            mutableLoadingState.postValue(true)
+        }
+        when (mutableConnectionState.value){
+            true -> {
+                val movie = network.getLatest(NetworkModule.api_key)
+                val id = movie.movieId ?: 0
+                val cast = movie.movieId?.let { network.getActors(it, NetworkModule.api_key) }
+                mutableMovieDetails.postValue(movie)
+                mutableCastData.postValue(cast)
+                val castForDB = cast?.castList?.let { converter.castResponseListToEntityList(it) }
+                val crewForDB = cast?.crew?.let { converter.crewResponseListToEntityList(it) }
+                castForDB?.forEach { it.movieId = id }
+                crewForDB?.forEach { it.movieId = id }
+                val latestIDs = database.detailsDAO().getLatestID()
+                var latestID = 0
+                if (latestIDs.isNotEmpty()){
+                    latestID = latestIDs[0]
+                }
+                database.detailsDAO().deleteLatestCast(latestID)
+                database.detailsDAO().deleteLatestCrew(latestID)
+                database.detailsDAO().deleteLatestMovie()
+                database.detailsDAO().saveLatestMovie(converter.movieDetailsResponseToEntity(movie))
+                if (castForDB != null) {
+                    database.detailsDAO().insertCast(castForDB)
+                }
+                if (crewForDB != null) {
+                    database.detailsDAO().insertCrew(crewForDB)
+                }
+                mutableLoadingState.postValue(false)
+            }
+            else -> {
+                val id = database.detailsDAO().getLatestID()[0]
+                loadMovieDataFromDB(id)
+            }
+        }
+
+    }
+
     private suspend fun loadMovieDataFromDB(id: Int): Boolean {
         mutableLoadingState.value = true
         var loaded = false
-        val movie = converter.movieDetailsEntityToResponse(database.detailsDAO().getMovieDetails(id))
+        val movie =
+            converter.movieDetailsEntityToResponse(database.detailsDAO().getMovieDetails(id))
         if (movie != MovieDetailsResponse()) {
             loaded = true
-            cast.castList = converter.castEntityListToResponseList(database.detailsDAO().getCast(id))
+            cast.castList =
+                converter.castEntityListToResponseList(database.detailsDAO().getCast(id))
             cast.crew = converter.crewEntityListToResponseList(database.detailsDAO().getCrew(id))
         }
         if (loaded) {

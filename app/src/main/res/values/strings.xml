@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HW10</string>
+    <string name="app_name">MyApp</string>
     <string name="back">Back</string>
     <string name="storylineHeader">Storyline</string>
     <string name="cast">Cast</string>
@@ -15,7 +15,7 @@
     <string name="watch_later">Watch later</string>
 
     <string-array name="tabs">
-        <item>Latest</item>
+        <item>Latest Movie</item>
         <item>Now playing</item>
         <item>Popular</item>
         <item>Top Rated</item>
@@ -34,6 +34,7 @@
     <string name="deepLinkBaseURL">com.pashcabu.hw2://movie/</string>
     <string name="notificationTitle_highestRating">Movie with the Highest rating now:</string>
     <string name="notificationTitle_new">New movie!</string>
+    <string name="searchHint">Input your search query here.</string>
 
 
 

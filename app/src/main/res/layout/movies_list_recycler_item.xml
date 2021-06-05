@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/movie_card_container"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/movie_card_height"
+    android:layout_height="match_parent"
     android:layout_gravity="center"
     android:transitionName="moviesRecyclerItem"
     >
@@ -120,11 +120,14 @@
 
     <TextView
         android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
+        android:layout_margin="2dp"
         android:textColor="@color/not_so_white"
-        android:textSize="@dimen/movies_list_item_title"
+        app:autoSizeTextType="uniform"
+        app:autoSizeMinTextSize="@dimen/movies_list_item_title_smaller"
+        app:autoSizeMaxTextSize="@dimen/movies_list_item_title"
+        app:autoSizeStepGranularity="1sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@id/movie"
         app:layout_constraintTop_toBottomOf="@id/poster" />

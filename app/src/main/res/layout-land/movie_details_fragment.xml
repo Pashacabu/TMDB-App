@@ -1,26 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/details_swipe_refresh"
+    android:id="@+id/movie_details"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:transitionName="detailsFragment">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/offline_warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/pink_ish"
+        android:gravity="center"
+        android:text="@string/offline_data_pull_down_to_refresh"
+        android:textColor="@color/background"
+        android:textStyle="bold"
+        android:visibility="visible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/offline_warning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/pink_ish"
-            android:gravity="center"
-            android:text="@string/offline_data_pull_down_to_refresh"
-            android:textColor="@color/background"
-            android:textStyle="bold"
-            android:visibility="visible" />
+        android:id="@+id/details_swipe_refresh"
+        app:layout_constraintTop_toBottomOf="@id/offline_warning"
+        app:layout_constraintStart_toStartOf="parent">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -227,5 +232,7 @@
 
 
         </ScrollView>
-    </LinearLayout>
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

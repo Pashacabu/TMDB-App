@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/search_layout"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/background"
+    android:visibility="visible"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/search_header"
+        android:gravity="center"
+        android:text="Search"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textSize="@dimen/movie_details_title"
+        android:textColor="@color/white"
+        android:textStyle="bold"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/searchET"
+        app:layout_constraintTop_toBottomOf="@id/search_header"
+        app:layout_constraintStart_toStartOf="@id/search_header"
+        android:textSize="@dimen/search_textsize"
+        android:gravity="end"
+        android:textColor="@color/white"
+        android:textColorHighlight="@color/white"
+        android:textCursorDrawable="@null"
+        android:backgroundTint="@color/gray_ish"
+        android:hint="@string/searchHint"
+        android:textColorHint="@color/gray_ish"
+        />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/search_results"
+        app:layout_constraintTop_toBottomOf="@id/searchET"
+        app:layout_constraintStart_toStartOf="@id/searchET"/>
+
+
+</LinearLayout>

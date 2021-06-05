@@ -3,7 +3,9 @@ package com.pashcabu.hw2.model.data_classes.dAOs
 import androidx.room.*
 import com.pashcabu.hw2.model.data_classes.room_db_tables.DBCastItem
 import com.pashcabu.hw2.model.data_classes.room_db_tables.DBCrewItem
+import com.pashcabu.hw2.model.data_classes.room_db_tables.DBLatestMovieDetails
 import com.pashcabu.hw2.model.data_classes.room_db_tables.DBMovieDetails
+import retrofit2.http.GET
 
 @Dao
 interface DetailsDAO {
@@ -28,15 +30,36 @@ interface DetailsDAO {
 
     @Query("DELETE FROM MovieDetails")
     suspend fun deleteDetails()
+
     @Query("DELETE FROM CastDetails")
     suspend fun deleteCastDetails()
+
     @Query("DELETE FROM CrewDetails")
     suspend fun deleteCrewDetails()
+
     @Transaction
-    suspend fun deleteAllDetails(){
+    suspend fun deleteAllDetails() {
         deleteDetails()
         deleteCastDetails()
         deleteCrewDetails()
     }
+
+    @Insert(entity = DBLatestMovieDetails::class, onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveLatestMovie(movie: DBMovieDetails?)
+
+    @Query("SELECT * FROM LatestMovie")
+    suspend fun getLatest(): List<DBMovieDetails>
+
+    @Query("DELETE FROM LatestMovie")
+    suspend fun deleteLatestMovie()
+
+    @Query("DELETE FROM CastDetails WHERE movieID = :id")
+    suspend fun deleteLatestCast(id: Int)
+
+    @Query("DELETE FROM CrewDetails WHERE movieID = :id")
+    suspend fun deleteLatestCrew(id: Int)
+
+    @Query("SELECT TMDB_ID FROM LatestMovie")
+    suspend fun getLatestID(): List<Int>
 
 }

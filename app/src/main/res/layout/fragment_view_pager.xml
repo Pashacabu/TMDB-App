@@ -25,6 +25,27 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/movies_list_viewpager"
+        app:layout_constraintTop_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        >
+    </androidx.viewpager2.widget.ViewPager2>
+
+
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:src="@android:drawable/ic_menu_search"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="@dimen/main_left_padding"
+        app:rippleColor="@color/not_so_white"
+        android:backgroundTint="@color/pink_ish"
+        app:borderWidth="0dp"
         />
+
 
 </LinearLayout>
