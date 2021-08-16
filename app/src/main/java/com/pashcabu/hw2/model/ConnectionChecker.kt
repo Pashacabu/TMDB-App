@@ -11,24 +11,29 @@ import androidx.lifecycle.LiveData
 
 class ConnectionChecker(context: Context) : LiveData<Boolean>() {
 
-    private val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private val manager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     private val builderCellular = NetworkRequest.Builder()
-            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+        .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
     private val builderWiFi = NetworkRequest.Builder()
-            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
     private var cellularIsOn = false
     private var wiFiIsOn = false
+    private var isRegistered = false
 
 
     override fun onActive() {
-        Log.d("CCH", "im being observed")
-        manager.registerNetworkCallback(
+        if (!isRegistered) {
+            manager.registerNetworkCallback(
                 builderCellular.build(),
-                MyCellularCallback())
-        manager.registerNetworkCallback(
+                MyCellularCallback()
+            )
+            manager.registerNetworkCallback(
                 builderWiFi.build(),
                 MyWiFiCallback()
-        )
+            )
+            isRegistered = true
+        }
     }
 
     fun postActualConnectivityStatus() {
@@ -43,14 +48,11 @@ class ConnectionChecker(context: Context) : LiveData<Boolean>() {
     inner class MyCellularCallback() : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
-            Log.d("CCH", "cellular available")
             cellularIsOn = true
             postActualConnectivityStatus()
         }
 
         override fun onLost(network: Network) {
-//            super.onLost(network)
-            Log.d("CCH", "cellular lost")
             cellularIsOn = false
             postActualConnectivityStatus()
         }
@@ -59,18 +61,16 @@ class ConnectionChecker(context: Context) : LiveData<Boolean>() {
     inner class MyWiFiCallback() : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
-            Log.d("CCH", "wifi available")
             wiFiIsOn = true
             postActualConnectivityStatus()
         }
 
         override fun onLost(network: Network) {
             super.onLost(network)
-            Log.d("CCH", "wifi lost")
             wiFiIsOn = false
             postActualConnectivityStatus()
         }
     }
 
-
+    companion object : SingletonHolder<ConnectionChecker, Context>(::ConnectionChecker)
 }

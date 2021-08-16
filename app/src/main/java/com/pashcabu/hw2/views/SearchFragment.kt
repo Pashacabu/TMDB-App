@@ -1,6 +1,7 @@
 package com.pashcabu.hw2.views
 
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -8,9 +9,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.Toast
+import android.widget.*
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -26,11 +26,14 @@ class SearchFragment : Fragment() {
 
     private lateinit var searchLayout: LinearLayout
     private lateinit var searchET: EditText
+    private lateinit var backArrow: ImageView
+    private lateinit var backTV: TextView
     private lateinit var transName: String
     private var currentPage = 1
     private var searchQuery = String()
     private lateinit var viewModel: MoviesListViewModel
     private var currentFragment: MoviesListFragment? = null
+    private var goBackClickListener: GoBack? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,7 +41,7 @@ class SearchFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         exitTransition = MaterialElevationScale(false).apply {
-            duration = 500
+            duration = resources.getInteger(R.integer.transition_duration).toLong()
         }
         return inflater.inflate(R.layout.search_layout, container, false)
     }
@@ -55,7 +58,6 @@ class SearchFragment : Fragment() {
             childFragmentManager.beginTransaction()
                 .replace(R.id.search_results, listFragment, TAG)
                 .commit()
-//            addListFragment()
             currentFragment = listFragment
         } else {
             currentFragment = fragment
@@ -74,27 +76,49 @@ class SearchFragment : Fragment() {
         searchET = view.findViewById(R.id.searchET)
         searchLayout = view.findViewById(R.id.search_layout)
         searchLayout.transitionName = transName
+        backArrow = view.findViewById(R.id.backArrow)
+        backTV = view.findViewById(R.id.backButton)
+        backArrow.setOnClickListener { goBackClickListener?.onBackArrowPressed() }
+        backTV.setOnClickListener { goBackClickListener?.onBackArrowPressed() }
+
     }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is GoBack) {
+            goBackClickListener = context
+        }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        goBackClickListener = null
+    }
+
 
     private fun getViewModel(currentFragment: MoviesListFragment) {
         CoroutineScope(Dispatchers.Default).launch {
             delay(100)
             viewModel = ViewModelProvider(currentFragment).get(MoviesListViewModel::class.java)
-            searchET.addTextChangedListener(MyWatcher(viewModel))
             CoroutineScope(Dispatchers.Main).launch { subscribePageStep() }
         }
     }
 
     override fun onResume() {
         super.onResume()
+        addTextWatcher()
+    }
+
+    private fun addTextWatcher() {
         CoroutineScope(Dispatchers.Default).launch {
             var time = 0
             while (!this@SearchFragment::viewModel.isInitialized) {
-                delay(50)
-                time += 50
+                delay(1)
+                time += 1
+                if (time > 500) break
             }
+            searchET.addTextChangedListener(MyWatcher(viewModel))
         }
-
     }
 
     private fun subscribePageStep() {
@@ -103,8 +127,12 @@ class SearchFragment : Fragment() {
                 currentPage = it
             })
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "View model is empty!", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(requireContext(), "View model is empty!", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    interface GoBack {
+        fun onBackArrowPressed()
     }
 
     companion object {

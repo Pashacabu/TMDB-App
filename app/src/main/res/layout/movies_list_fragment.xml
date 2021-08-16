@@ -15,13 +15,16 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/offline_warning">
+        app:layout_constraintTop_toBottomOf="@id/offline_warning"
+        >
 
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/movies_list_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:scrollbarStyle="insideInset"
+            android:scrollbarSize="2dp"
             />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

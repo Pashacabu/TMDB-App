@@ -7,17 +7,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.core.view.doOnPreDraw
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.material.transition.MaterialContainerTransform
 import com.google.android.material.transition.MaterialElevationScale
 import com.pashcabu.hw2.R
-import com.pashcabu.hw2.model.data_classes.Database
 import com.pashcabu.hw2.view_model.*
 import com.pashcabu.hw2.views.adapters.ScreenSlideAdapter
 
@@ -34,7 +30,7 @@ class ViewPagerFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         exitTransition = MaterialElevationScale(false).apply {
-            duration = 500
+            duration = requireContext().resources.getInteger(R.integer.transition_duration).toLong()
         }
         return inflater.inflate(R.layout.new_fragment_viewpager, container, false)
     }
@@ -48,13 +44,14 @@ class ViewPagerFragment : Fragment() {
         viewPager = view.findViewById(R.id.movies_list_viewpager)
         searchButton = view.findViewById(R.id.searchButton)
         searchButton.transitionName = SEARCH
-        val fragment = SearchFragment.newInstance(searchButton.transitionName)
 
-        fragment.sharedElementEnterTransition = MaterialContainerTransform().apply {
-            duration = 500
-            scrimColor = Color.TRANSPARENT
-        }
+
         searchButton.setOnClickListener {
+            val fragment = SearchFragment.newInstance(searchButton.transitionName)
+            fragment.sharedElementEnterTransition = MaterialContainerTransform().apply {
+                duration = resources.getInteger(R.integer.transition_duration).toLong()
+                scrimColor = Color.TRANSPARENT
+            }
             activity?.supportFragmentManager?.beginTransaction()
                 ?.replace(R.id.fragment_container, fragment)
                 ?.addToBackStack(SEARCH)

@@ -15,9 +15,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.work.WorkManager
 import com.google.android.material.transition.MaterialContainerTransform
 import com.pashcabu.hw2.R
@@ -26,76 +26,39 @@ import com.pashcabu.hw2.model.data_classes.Database
 import com.pashcabu.hw2.model.data_classes.networkResponses.Movie
 import com.pashcabu.hw2.view_model.*
 import com.pashcabu.hw2.views.adapters.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import okhttp3.Dispatcher
 
 
 class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
-
-//    private var openMovieListener: MoviesListClickListener = object : MoviesListClickListener {
-//        override fun onMovieSelected(
-//            movieID: Int,
-//            title: String,
-//            view: View
-//        ) {
-//            val detailsFragment = MovieDetailsFragment.newInstance(movieID)
-//            val bundle = detailsFragment.arguments ?: Bundle()
-//            bundle.putString("transition_name", view.transitionName)
-//            detailsFragment.arguments = bundle
-//            detailsFragment.sharedElementEnterTransition = MaterialContainerTransform().apply {
-//                duration = 500
-//                scrimColor = Color.TRANSPARENT
-//            }
-//            detailsFragment.sharedElementReturnTransition = MaterialContainerTransform().apply {
-//                duration = 500
-//                scrimColor = Color.TRANSPARENT
-//            }
-//
-//            parentFragment?.let {
-//                activity?.supportFragmentManager?.beginTransaction()
-//                    ?.setReorderingAllowed(true)
-//                    ?.replace(
-//                        R.id.fragment_container,
-//                        detailsFragment
-//                    )
-//                    ?.hide(it)
-//                    ?.addToBackStack(title)
-//                    ?.addSharedElement(view, view.transitionName)
-//                    ?.commit()
-//            }
-//        }
-//
-//        override fun onMovieLiked(movie: Movie) {
-//            viewModel.onLikedButtonPressed(endpoint, movie)
-//        }
-//    }
-
     private var movieListener: MoviesListAdapterInterface = object : MoviesListAdapterInterface {
         override fun onMovieSelected(id: Int, title: String, view: View) {
-            val detailsFragment = MovieDetailsFragment.newInstance(id)
-            val bundle = detailsFragment.arguments ?: Bundle()
-            bundle.putString("transition_name", view.transitionName)
-            detailsFragment.arguments = bundle
-            detailsFragment.sharedElementEnterTransition = MaterialContainerTransform().apply {
-                duration = 500
-                scrimColor = Color.TRANSPARENT
+            var detailsFragment = activity?.supportFragmentManager?.findFragmentByTag("details$id")
+            if (detailsFragment == null) {
+                detailsFragment = MovieDetailsFragment.newInstance(id)
+                val bundle = detailsFragment.arguments ?: Bundle()
+                bundle.putString("transition_name", view.transitionName)
+                detailsFragment.arguments = bundle
+                detailsFragment.sharedElementEnterTransition = MaterialContainerTransform().apply {
+                    duration =
+                        requireContext().resources.getInteger(R.integer.transition_duration)
+                            .toLong()
+                    scrimColor = Color.TRANSPARENT
+                }
+                detailsFragment.sharedElementReturnTransition = MaterialContainerTransform().apply {
+                    duration =
+                        requireContext().resources.getInteger(R.integer.transition_duration)
+                            .toLong()
+                    scrimColor = Color.TRANSPARENT
+                }
             }
-            detailsFragment.sharedElementReturnTransition = MaterialContainerTransform().apply {
-                duration = 500
-                scrimColor = Color.TRANSPARENT
-            }
-
             activity?.supportFragmentManager?.beginTransaction()
                 ?.setReorderingAllowed(true)
                 ?.replace(
                     R.id.fragment_container,
-                    detailsFragment
+                    detailsFragment,
+                    "details$id"
                 )
-                ?.addToBackStack(title)
+                ?.addToBackStack("List")
                 ?.addSharedElement(view, view.transitionName)
                 ?.commit()
 
@@ -107,20 +70,17 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     }
 
-    //    private var adapter = NewMoviesListAdapter(openMovieListener)
-    private val differentAdapter = MoviesListAdapter(movieListener)
+    private val adapter = MoviesListAdapter(movieListener)
     private lateinit var moviesListRecyclerView: RecyclerView
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var offlineWarning: TextView
     private lateinit var roomDB: Database
     private lateinit var viewModel: MoviesListViewModel
-
-    private lateinit var connectionViewModel: ConnectionViewModel
     private var endpoint: String? = null
     private var currentPage: Int = 1
     private var totalPages: Int = 0
     private var toast: Toast? = null
-    private var connectionChecker: ConnectionChecker? = null
+    private lateinit var connectionChecker: ConnectionChecker
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -156,34 +116,33 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             moviesListRecyclerView.addItemDecoration(Decorator().itemSpacing((width * 0.1 / 10).toInt()))
             moviesListRecyclerView.setPadding((width * 0.1 / 10).toInt())
         }
-        moviesListRecyclerView.adapter = differentAdapter
+        moviesListRecyclerView.adapter = adapter
     }
 
     private fun loadData(endpoint: String?) {
-        viewModel.loadLiveData(endpoint, currentPage)
+        when (endpoint) {
+            PersonFragment.LIST -> {
+                val id = arguments?.getInt(PersonFragment.PERSON)
+                viewModel.loadLiveData(endpoint, currentPage, id ?: 0)
+            }
+            else -> {
+                viewModel.loadLiveData(endpoint, currentPage)
+            }
+        }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("MOVIESLIST", "onCreate")
         roomDB = Database.createDB(requireContext())
         val worker = WorkManager.getInstance(requireContext())
         val factory = MyViewModelFactory.MoviesListViewModelFactory(roomDB, worker)
-        val factoryConnection = MyViewModelFactory.ConnectionViewModelFactory()
         viewModel = ViewModelProvider(this, factory).get(MoviesListViewModel::class.java)
-//        Log.d("ML", "ViewModel was created: $viewModel")
-        connectionViewModel =
-            ViewModelProvider(this, factoryConnection).get(ConnectionViewModel::class.java)
-        connectionChecker = ConnectionChecker(requireContext())
+        connectionChecker = ConnectionChecker.getInstance(requireContext())
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d(
-            "ML", "$endpoint is onResume, " +
-                    "view model is $viewModel"
-        )
-
         if (endpoint == FAVOURITE) {
             viewModel.refreshMovieList(endpoint, currentPage)
         } else {
@@ -196,6 +155,10 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         viewModel.refreshMovieList(endpoint, currentPage)
     }
 
+    fun callToRefresh() {
+        refreshData()
+    }
+
     private fun getEndpoint() {
         endpoint = arguments?.getString(ENDPOINT)
     }
@@ -204,10 +167,8 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         val stateObserver = Observer<Boolean> {
             swipeRefreshLayout.isRefreshing = it
         }
-        val listObserver = Observer<List<Movie?>> {
-            Log.d("ML","Subscribed to a list, its size is ${it.size}")
-            differentAdapter.submitList(it)
-
+        val listObserver = Observer<List<Movie?>?> {
+            adapter.submitList(it)
         }
         val pagesObserver = Observer<Int> {
             totalPages = it
@@ -224,14 +185,6 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                 }
             }
         }
-        val connectionObserver = Observer<Boolean> {
-            viewModel.setConnectionState(it)
-            if (it) {
-                offlineWarning.visibility = View.GONE
-            } else {
-                offlineWarning.visibility = View.VISIBLE
-            }
-        }
         viewModel.loadingState.observe(this.viewLifecycleOwner, stateObserver)
         viewModel.moviesList.observe(this.viewLifecycleOwner, listObserver)
         viewModel.amountOfPages.observe(this.viewLifecycleOwner, pagesObserver)
@@ -239,10 +192,17 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         viewModel.pageStep.observe(this.viewLifecycleOwner, {
             currentPage = it
         })
-        connectionChecker?.observe(this.viewLifecycleOwner, {
-            connectionViewModel.setConnectionState(it)
+        connectionChecker.observe(this.viewLifecycleOwner, {
+            connectionObserver(it)
         })
-        connectionViewModel.connectionState.observe(this.viewLifecycleOwner, connectionObserver)
+    }
+
+    private fun connectionObserver(state: Boolean) {
+        viewModel.setConnectionState(state)
+        when (state) {
+            true -> offlineWarning.visibility = View.GONE
+            else -> offlineWarning.visibility = View.VISIBLE
+        }
     }
 
     private fun addLoadMoreListener() {
@@ -263,24 +223,33 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         if (endpoint != FAVOURITE) {
             moviesListRecyclerView.addOnScrollListener(listener)
         }
+//        addScrollingListener()
 
     }
+
+//    private fun addScrollingListener() {
+//        val listener = SimpleScrollListener {
+//            viewModel.informOuterFragmentAboutScrolling(it)
+//        }
+//        if (endpoint != FAVOURITE) {
+//            moviesListRecyclerView.addOnScrollListener(listener)
+//        }
+//    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         getEndpoint()
         findViews(view)
         loadData(endpoint)
-        setUpAdapter(view)
         subscribeLiveData()
+        setUpAdapter(view)
         addLoadMoreListener()
         addAnimationScrollListener()
+
     }
 
     private fun addAnimationScrollListener() {
-//        moviesListRecyclerView.addOnScrollListener(adapter.AnimationScrollListener())
-        moviesListRecyclerView.addOnScrollListener(differentAdapter.AnimationScrollListener())
+        moviesListRecyclerView.addOnScrollListener(adapter.AnimationScrollListener())
     }
 
     override fun onRefresh() {
@@ -303,10 +272,6 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             return fragment
         }
 
-//        const val NOW_PLAYING = "now_playing"
-//        const val POPULAR = "popular"
-//        const val TOP_RATED = "top_rated"
-//        const val UPCOMING = "upcoming"
         const val ENDPOINT = "EndPoint"
         const val FAVOURITE = "favourite"
 

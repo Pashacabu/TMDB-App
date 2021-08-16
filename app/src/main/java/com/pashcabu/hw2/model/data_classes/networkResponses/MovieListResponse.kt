@@ -6,13 +6,25 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MovieListResponse(
     @SerialName("dates")
-    val dates: Dates? = null,
+    var dates: Dates? = null,
+    @SerialName("page")
+    var page: Int? = null,
+    @SerialName("total_pages")
+    var totalPages: Int? = null,
+    @SerialName("results")
+    var results: MutableList<Movie?>? = null,
+    @SerialName("total_results")
+    var totalResults: Int? = null
+)
+
+@Serializable
+data class PersonsMoviesListResponse(
     @SerialName("page")
     val page: Int? = null,
-    @SerialName("total_pages")
-    val totalPages: Int? = null,
     @SerialName("results")
     val results: MutableList<Movie?>? = null,
+    @SerialName("total_pages")
+    val totalPages: Int? = null,
     @SerialName("total_results")
     val totalResults: Int? = null
 )
@@ -28,13 +40,13 @@ data class Dates(
 @Serializable
 data class Movie(
     @SerialName("overview")
-    val overview: String? = null,
+    var overview: String? = null,
     @SerialName("original_language")
-    val originalLanguage: String? = null,
+    var originalLanguage: String? = null,
     @SerialName("original_title")
-    val originalTitle: String? = null,
+    var originalTitle: String? = null,
     @SerialName("video")
-    val video: Boolean? = null,
+    var video: Boolean? = null,
     @SerialName("title")
     var title: String? = null,
     @SerialName("genre_ids")

@@ -5,16 +5,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.icu.util.TimeUnit
 import android.os.Build
-import android.util.Log
-import android.util.TimeUtils
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.work.*
 import com.bumptech.glide.Glide
@@ -85,8 +79,13 @@ class MyWorker(val context: Context, workerParams: WorkerParameters) :
             NotificationCompat.Builder(context, context.getString(R.string.channelID))
                 .setContentTitle(notTitle)
                 .setStyle(NotificationCompat.BigPictureStyle().bigPicture(myBitmap))
-                .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.icon))
-                .setSmallIcon(R.drawable.icon)
+                .setLargeIcon(
+                    BitmapFactory.decodeResource(
+                        context.resources,
+                        R.drawable.notification_icon
+                    )
+                )
+                .setSmallIcon(R.drawable.notification_icon_small)
                 .setContentText(mostRatedMovie.title)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
@@ -150,7 +149,7 @@ class MyWorker(val context: Context, workerParams: WorkerParameters) :
                 }
                 if (difference.isEmpty()) {
                     notifyUser(
-                        newListWithGenres as List<Movie>,
+                        currentListOfMovies as List<Movie>,
                         context.getString(R.string.notificationTitle_highestRating)
                     )
                 } else {

@@ -1,15 +1,26 @@
 <resources>
-    <string name="app_name">MyApp</string>
+    <string name="app_name">TMDB App</string>
     <string name="back">Back</string>
     <string name="storylineHeader">Storyline</string>
     <string name="cast">Cast</string>
+    <string name="crew">Crew</string>
     <string name="moviesList">Movies List</string>
+
+    <string name="biography">Biography:</string>
+    <string name="birthday">Birthday:</string>
+    <string name="deaathday">Death day:</string>
+    <string name="gender">Gender:</string>
+    <string name="person_movies">Movies</string>
+
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
 
     <string name="pg">%d+</string>
     <string name="reviews">%d Reviews</string>
     <string name="duration">%d MIN</string>
     <string name="starring">%1$s as %2$s</string>
     <string name="no_actors_data">No cast data available</string>
+    <string name="no_cast_data">No crew data available</string>
     <string name="refresh_button">Refresh</string>
     <string name="offline_data_pull_down_to_refresh">Offline</string>
     <string name="watch_later">Watch later</string>
@@ -21,6 +32,23 @@
         <item>Top Rated</item>
         <item>Upcoming</item>
         <item>Favourite</item>
+    </string-array>
+
+    <string-array name="sorting">
+<!--        <item>popularity.asc</item>-->
+<!--        <item>popularity.desc</item>-->
+        <item>release_date.asc</item>
+        <item>release_date.desc</item>
+        <item>revenue.asc</item>
+        <item>revenue.desc</item>
+<!--        <item>primary_release_date.asc</item>-->
+<!--        <item>primary_release_date.desc</item>-->
+        <item>original_title.asc</item>
+        <item>original_title.desc</item>
+        <item>vote_average.asc</item>
+        <item>vote_average.desc</item>
+<!--        <item>vote_count.asc</item>-->
+<!--        <item>vote_count.desc</item>-->
     </string-array>
 
     <string name="cal_permission_not_granted">Calendar permission not granted!</string>
@@ -35,8 +63,11 @@
     <string name="notificationTitle_highestRating">Movie with the Highest rating now:</string>
     <string name="notificationTitle_new">New movie!</string>
     <string name="searchHint">Input your search query here.</string>
+    <string name="place_of_birth">Place of birth:</string>
 
 
+    <string name="shared_details">details%d</string>
+    <string name="shared_person">person%1d+position%2d</string>
 
 
 </resources>

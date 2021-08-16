@@ -8,33 +8,72 @@
     android:visibility="visible"
     android:orientation="vertical">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/search_header"
-        android:gravity="center"
-        android:text="Search"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:textSize="@dimen/movie_details_title"
-        android:textColor="@color/white"
-        android:textStyle="bold"/>
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/main_top_padding"
+        android:layout_marginHorizontal="@dimen/main_left_padding">
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/searchET"
-        app:layout_constraintTop_toBottomOf="@id/search_header"
-        app:layout_constraintStart_toStartOf="@id/search_header"
-        android:textSize="@dimen/search_textsize"
-        android:gravity="end"
-        android:textColor="@color/white"
-        android:textColorHighlight="@color/white"
-        android:textCursorDrawable="@null"
-        android:backgroundTint="@color/gray_ish"
-        android:hint="@string/searchHint"
-        android:textColorHint="@color/gray_ish"
-        />
+        <ImageView
+
+            android:id="@+id/backArrow"
+            android:layout_width="9dp"
+            android:layout_height="15dp"
+            android:src="@drawable/path"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="2"
+            />
+
+        <TextView
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="@dimen/main_left_padding"
+            android:layout_marginTop="0dp"
+            android:alpha="0.5"
+            android:text="@string/back"
+            android:textColor="@color/white"
+            android:textSize="@dimen/movie_details_back_button"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="8"
+            />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/searchET"
+            android:textSize="@dimen/search_textsize"
+            android:gravity="end"
+            android:textColor="@color/white"
+            android:textColorHighlight="@color/white"
+            android:textCursorDrawable="@null"
+            android:backgroundTint="@color/gray_ish"
+            android:hint="@string/searchHint"
+            android:textColorHint="@color/gray_ish"
+            android:layout_weight="80"
+            android:drawableEnd="@android:drawable/ic_menu_search"
+            />
+
+
+
+
+    </LinearLayout>
+
+<!--    <TextView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:id="@+id/search_header"-->
+<!--        android:gravity="center"-->
+<!--        android:text="Search"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        android:textSize="@dimen/movie_details_title"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:textStyle="bold"/>-->
+
+
 
     <androidx.fragment.app.FragmentContainerView
         android:layout_width="match_parent"

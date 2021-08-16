@@ -54,7 +54,7 @@ data class DBMovieDetails(
 
 @Entity(
     tableName = "CastDetails",
-        primaryKeys = ["movieID", "id"]
+    primaryKeys = ["movieID", "id"]
 )
 data class DBCastItem(
     @ColumnInfo(name = "movieID")
@@ -85,8 +85,10 @@ data class DBCastItem(
     var order: Int? = null
 )
 
-@Entity(tableName = "CrewDetails",
-primaryKeys = ["movieID", "id"])
+@Entity(
+    tableName = "CrewDetails",
+    primaryKeys = ["movieID", "id"]
+)
 data class DBCrewItem(
     @ColumnInfo(name = "movieID")
     var movieId: Int = 0,

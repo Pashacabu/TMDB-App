@@ -1,10 +1,7 @@
 package com.pashcabu.hw2.model
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.pashcabu.hw2.model.data_classes.networkResponses.CastResponse
-import com.pashcabu.hw2.model.data_classes.networkResponses.GenresResponse
-import com.pashcabu.hw2.model.data_classes.networkResponses.MovieDetailsResponse
-import com.pashcabu.hw2.model.data_classes.networkResponses.MovieListResponse
+import com.pashcabu.hw2.model.data_classes.networkResponses.*
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -15,6 +12,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
+
 
 class NetworkModule {
 
@@ -31,8 +29,8 @@ class NetworkModule {
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.SECONDS)
-        .writeTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
         .addInterceptor(inter)
         .build()
 
@@ -78,10 +76,30 @@ class NetworkModule {
             @Query("page") page: Int
         ): MovieListResponse
 
+        @GET("person/{personId}")
+        suspend fun getPerson(
+            @Path("personId") personId: Int,
+            @Query("api_key") api_key: String,
+            @Query("append_to_response") query: String = "images"
+        ): PersonResponse
+
+        @GET("discover/movie")
+        suspend fun getPersonMovies(
+            @Query("api_key") api_key: String,
+            @Query("sort_by") sortBy: String = "popularity.desc",
+            @Query("page") page: Int,
+            @Query("with_people") personID: Int
+        ): PersonsMoviesListResponse
+
     }
 
     companion object {
         const val api_key = "690d3ea0f7ef1f69512be4c95fc7a886"
         private const val baseUrl = "https://api.themoviedb.org/3/"
     }
+}
+
+object SingleNetwork {
+    private val network = NetworkModule()
+    val service = network.apiService
 }

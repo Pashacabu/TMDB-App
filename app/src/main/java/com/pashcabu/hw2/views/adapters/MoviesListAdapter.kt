@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.pashcabu.hw2.R
 import com.pashcabu.hw2.model.data_classes.networkResponses.Movie
 
@@ -81,7 +82,8 @@ class MoviesListAdapter(private val listener: MoviesListAdapterInterface) :
     override fun onBindViewHolder(holder: MoviesListViewHolder, position: Int) {
         val movie = getItem(position)
         holder.onBindMovieData(movie)
-        holder.itemView.transitionName = "transition+ ${movie.id}"
+        holder.itemView.transitionName =
+            holder.itemView.context.getString(R.string.shared_details, movie.id ?: 0)
 //        Log.d("HOLDER", holder.itemView.transitionName)
         holder.itemView.animation =
             animation?.let { AnimationUtils.loadAnimation(holder.itemView.context, it) }
@@ -124,14 +126,22 @@ class MoviesListAdapter(private val listener: MoviesListAdapterInterface) :
 class BottomOfTheListListener(private val callback: () -> Unit) : RecyclerView.OnScrollListener() {
     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
         super.onScrolled(recyclerView, dx, dy)
-        if (dy > 0) {
-            val manager = recyclerView.layoutManager as LinearLayoutManager
-            val lastVisible = manager.findLastCompletelyVisibleItemPosition()
-            val totalItems = recyclerView.adapter?.itemCount
-            if (totalItems != null) {
-                if (lastVisible >= totalItems - 1) {
-                    callback()
-                }
+        if (dy > 0 && !recyclerView.canScrollVertically(1)) {
+            callback()
+        }
+    }
+}
+
+class SimpleScrollListener(private val callback: (scrolling: Boolean) -> Unit) :
+    RecyclerView.OnScrollListener() {
+    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+        super.onScrolled(recyclerView, dx, dy)
+        when {
+            dy > 50 -> {
+                callback(true)
+            }
+            else -> {
+                callback(false)
             }
         }
     }
@@ -144,8 +154,6 @@ class MoviesListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     private val tagLine: TextView = view.findViewById(R.id.tag_line)
     private val reviews: TextView = view.findViewById(R.id.reviews)
     val inFavourite: ImageView = view.findViewById(R.id.like)
-
-    //        private val duration: TextView = view.findViewById(R.id.duration)
     private val poster: ImageView = view.findViewById(R.id.poster_image)
     private val context = view.context
 
@@ -164,9 +172,11 @@ class MoviesListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         rating.rating = (movie?.voteAverage?.div(2))?.toFloat() ?: 0f
         tagLine.text = movie?.genres?.let { android.text.TextUtils.join(", ", it) }
         reviews.text = context.resources.getString(R.string.reviews, movie?.voteCount)
-//            duration.text = context.getString(R.string.duration, movie.runtime)
         Glide.with(context)
             .load(imageBaseUrl + movie?.posterPath)
+            .apply {
+                RequestOptions().dontTransform()
+            }
             .placeholder(R.drawable.poster_small_placeholder)
             .into(poster)
     }
@@ -195,7 +205,9 @@ class MoviesListDiffCallback : DiffUtil.ItemCallback<Movie>() {
 
 }
 
+
 interface MoviesListAdapterInterface {
     fun onMovieSelected(id: Int, title: String, view: View)
     fun onMovieLiked(movie: Movie)
+
 }
