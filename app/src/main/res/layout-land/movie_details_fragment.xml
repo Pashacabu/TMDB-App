@@ -66,6 +66,8 @@
                     app:layout_constraintTop_toTopOf="@id/tag_line"
                     app:layout_constraintBottom_toBottomOf="@id/tag_line"/>
 
+
+
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/watchLaterButton"
                     android:layout_width="wrap_content"
@@ -176,6 +178,30 @@
                     app:layout_constraintTop_toBottomOf="@id/tag_line" />
 
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/budget"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/movie_details_storyline_header"
+                    android:textStyle="bold"
+                    app:layout_constraintLeft_toRightOf="@id/paddingLeft"
+                    app:layout_constraintTop_toBottomOf="@id/rating"
+                    android:text="@string/budget"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/revenue"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/movie_details_storyline_header"
+                    android:textStyle="bold"
+                    app:layout_constraintLeft_toRightOf="@id/paddingLeft"
+                    app:layout_constraintTop_toBottomOf="@id/budget"
+                    android:text="@string/revenue"
+                    />
+
+                <TextView
                     android:id="@+id/storylineTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -186,7 +212,7 @@
                     android:textStyle="bold"
                     app:layout_constraintLeft_toRightOf="@id/paddingLeft"
                     app:layout_constraintRight_toLeftOf="@id/paddingRight"
-                    app:layout_constraintTop_toBottomOf="@id/reviews" />
+                    app:layout_constraintTop_toBottomOf="@id/revenue" />
 
                 <TextView
                     android:id="@+id/storylineDescription"
