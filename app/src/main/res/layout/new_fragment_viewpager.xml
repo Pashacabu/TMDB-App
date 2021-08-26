@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/movies_lists_tabs"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".views.ViewPagerFragment">
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/gray_ish"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tabBackground="@color/background"
+        app:tabIndicatorColor="@color/white"
+        app:tabInlineLabel="true"
+        app:tabMode="auto"
+        app:tabSelectedTextColor="@color/white"
+        app:tabTextColor="@color/gray_ish" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/movies_list_viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@id/tab_layout"
+        app:layout_constraintTop_toBottomOf="@id/tab_layout" />
+
+
+
+    <ImageView
+        android:id="@+id/searchButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/search"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_margin="@dimen/main_left_padding"/>
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_search"
+        app:layout_constraintEnd_toEndOf="@id/searchButton"
+        app:layout_constraintStart_toStartOf="@id/searchButton"
+        app:layout_constraintBottom_toBottomOf="@id/searchButton"
+        app:layout_constraintTop_toTopOf="@id/searchButton"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

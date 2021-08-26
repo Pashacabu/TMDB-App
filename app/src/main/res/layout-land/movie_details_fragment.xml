@@ -1,31 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/details_swipe_refresh"
+    android:id="@+id/movie_details"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:transitionName="detailsFragment">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/offline_warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/pink_ish"
+        android:gravity="center"
+        android:text="@string/offline_data_pull_down_to_refresh"
+        android:textColor="@color/background"
+        android:textStyle="bold"
+        android:visibility="visible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/offline_warning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/pink_ish"
-            android:gravity="center"
-            android:text="@string/offline_data_pull_down_to_refresh"
-            android:textColor="@color/background"
-            android:textStyle="bold"
-            android:visibility="visible" />
+        android:id="@+id/details_swipe_refresh"
+        app:layout_constraintTop_toBottomOf="@id/offline_warning"
+        app:layout_constraintStart_toStartOf="parent">
 
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/background"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:id="@+id/details_scroll_view">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -50,6 +57,15 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@id/mainPoster" />
 
+                <ImageView
+                    android:id="@+id/like"
+                    android:layout_width="@dimen/main_top_padding"
+                    android:layout_height="@dimen/main_top_padding"
+                    android:src="@drawable/like"
+                    app:layout_constraintEnd_toEndOf="@id/paddingRight"
+                    app:layout_constraintTop_toTopOf="@id/tag_line"
+                    app:layout_constraintBottom_toBottomOf="@id/tag_line"/>
+
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/watchLaterButton"
                     android:layout_width="wrap_content"
@@ -71,7 +87,7 @@
                     android:layout_width="9dp"
                     android:layout_height="15dp"
                     android:layout_marginStart="2dp"
-                    android:layout_marginTop="33dp"
+                    android:layout_marginTop="@dimen/main_top_padding"
                     android:src="@drawable/path"
                     app:layout_constraintLeft_toLeftOf="@id/paddingLeft"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -81,13 +97,13 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:layout_marginTop="30dp"
                     android:alpha="0.5"
                     android:text="@string/back"
                     android:textColor="@color/white"
                     android:textSize="@dimen/movie_details_back_button"
                     app:layout_constraintLeft_toRightOf="@id/backArrow"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="@id/backArrow"
+                    app:layout_constraintBottom_toBottomOf="@id/backArrow"/>
 
                 <ImageView
                     android:layout_width="24dp"
@@ -200,7 +216,7 @@
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/actors_recycler_view"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="7dp"
                     android:paddingStart="0dp"
@@ -208,6 +224,30 @@
                     app:layout_constraintEnd_toEndOf="@id/paddingRight"
                     app:layout_constraintStart_toStartOf="@id/paddingLeft"
                     app:layout_constraintTop_toBottomOf="@id/cast_title" />
+
+                <TextView
+                    android:id="@+id/crew_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/main_top_padding"
+                    android:lineSpacingExtra="8sp"
+                    android:text="@string/crew"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/movie_details_cast_header"
+                    app:layout_constraintLeft_toRightOf="@id/paddingLeft"
+                    app:layout_constraintTop_toBottomOf="@id/actors_recycler_view" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/crew_recycler_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="7dp"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    app:layout_constraintStart_toStartOf="@id/paddingLeft"
+                    app:layout_constraintEnd_toStartOf="@id/paddingRight"
+                    app:layout_constraintTop_toBottomOf="@id/crew_title" />
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/paddingLeft"
@@ -226,5 +266,7 @@
 
 
         </ScrollView>
-    </LinearLayout>
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

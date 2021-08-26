@@ -12,5 +12,8 @@
     <color name="movie_card_stroke">#80636375</color>
     <color name="length_color">#565665</color>
 
+    <color name="pink_ish_argb_start">#88FF3466</color>
+    <color name="pink_ish_argb_end">#00FF3466</color>
+
 
 </resources>

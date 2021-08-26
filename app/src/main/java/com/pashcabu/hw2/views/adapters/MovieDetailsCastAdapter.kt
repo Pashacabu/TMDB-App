@@ -1,6 +1,8 @@
 package com.pashcabu.hw2.views.adapters
 
 
+import android.content.res.Configuration
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,24 +15,38 @@ import com.pashcabu.hw2.model.data_classes.networkResponses.CastItem
 import com.pashcabu.hw2.R
 
 
-class MovieDetailsAdapter(private var movieDetailsActorsClickListener: MovieDetailsActorsClickListener) :
+class MovieDetailsCastAdapter(private var movieDetailsActorsClickListener: MovieDetailsActorsClickListener) :
     RecyclerView.Adapter<ActorsViewHolder>() {
     var actors: List<CastItem?>? = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActorsViewHolder {
         val view =
             LayoutInflater.from(parent.context).inflate(R.layout.cast_recycler_item, parent, false)
+        val orientation = parent.context.resources.configuration.orientation
+        val width = parent.context.resources.displayMetrics.widthPixels
+        when (orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> view.layoutParams.width =
+                (width * 0.9 / 3.5).toInt()
+            Configuration.ORIENTATION_LANDSCAPE -> view.layoutParams.width =
+                (width * 0.9 / 5.5).toInt()
+        }
         return ActorsViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ActorsViewHolder, position: Int) {
         holder.onBind(actors?.get(position))
+        holder.itemView.transitionName = holder.itemView.context.getString(
+            R.string.shared_person,
+            actors?.get(position)?.id,
+            position
+        )
         holder.itemView.setOnClickListener {
-            movieDetailsActorsClickListener.onActorSelected(
-                actors?.get(
-                    position
+            actors?.get(position)?.id.let { it1 ->
+                movieDetailsActorsClickListener.onActorSelected(
+                    it1 ?: 0,
+                    holder.itemView
                 )
-            )
+            }
         }
     }
 
@@ -39,7 +55,7 @@ class MovieDetailsAdapter(private var movieDetailsActorsClickListener: MovieDeta
     }
 
     fun loadActorsData(cast: CastResponse) {
-        actors = cast.castList
+        actors = SortPeopleByPhoto().sortCast(cast.castList)
     }
 }
 
@@ -63,7 +79,7 @@ class ActorsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 }
 
 interface MovieDetailsActorsClickListener {
-    fun onActorSelected(actor: CastItem?)
+    fun onActorSelected(actorId: Int, view: View)
 }
 
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar"/>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    </style>
 
     <style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
 
@@ -29,5 +30,10 @@
         <item name="android:gravity">center</item>
         <item name="android:padding">@dimen/movie_details_storyline</item>
         <item name="android:colorAccent">@color/background</item>
+    </style>
+
+    <style name="Search" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
     </style>
 </resources>

@@ -1,11 +1,12 @@
 package com.pashcabu.hw2.model
 
+import android.util.Log
 import com.pashcabu.hw2.model.data_classes.networkResponses.*
 import com.pashcabu.hw2.model.data_classes.room_db_tables.*
 
 class ClassConverter {
-    fun movieToEntityItem(movie: Movie?): EntityItem {
-        val item = EntityItem()
+    fun movieToEntityItem(movie: Movie?): MoviesListItem {
+        val item = MoviesListItem()
         item.id = movie?.id!!
         item.title = movie.title
         item.addedToFavourite = movie.addedToFavourite
@@ -21,7 +22,28 @@ class ClassConverter {
         return item
     }
 
-    private fun entityItemToMovie(item: EntityItem): Movie {
+    fun detailsResponseToMovie(movie: MovieDetailsResponse): Movie {
+        val output = Movie()
+        output.id = movie.movieId
+        output.addedToFavourite = movie.liked
+        output.adult = movie.adult
+        output.overview = movie.overview
+        output.originalLanguage = movie.originalLanguage
+        output.originalTitle = movie.originalTitle
+        output.video = movie.video
+        output.title = movie.movieTitle
+        output.genreIds = movie.genres?.map { it?.genreId }
+        output.genres = movie.genres?.map { it?.genreName }
+        output.posterPath = movie.posterPath
+        output.backdropPath = movie.backdropPath
+        output.releaseDate = movie.releaseDate
+        output.popularity = movie.popularity
+        output.voteAverage = movie.voteAverage
+        output.voteCount = movie.reviews
+        return output
+    }
+
+    fun entityItemToMovie(item: MoviesListItem): Movie {
         val movie = Movie()
         movie.id = item.id
         movie.title = item.title
@@ -38,15 +60,15 @@ class ClassConverter {
         return movie
     }
 
-    fun movieListToEntityList(movies: List<Movie?>): List<EntityItem> {
-        val items = mutableListOf<EntityItem>()
+    fun movieListToEntityList(movies: List<Movie?>): List<MoviesListItem> {
+        val items = mutableListOf<MoviesListItem>()
         for (movie in movies) {
             items.add(movieToEntityItem(movie))
         }
         return items
     }
 
-    fun entityItemsListToMovieList(items: List<EntityItem>): List<Movie?> {
+    fun entityItemsListToMovieList(items: List<MoviesListItem>): List<Movie?> {
         val movies = mutableListOf<Movie>()
         for (item in items) {
             movies.add(entityItemToMovie(item))
@@ -144,7 +166,7 @@ class ClassConverter {
         output.character = item.character
         output.creditId = item.creditId
         output.gender = item.gender
-        output.id = item.id ?:0
+        output.id = item.id ?: 0
         output.knownForDepartment = item.knownForDepartment
         output.order = item.order
         output.originalName = item.originalName
@@ -195,7 +217,7 @@ class ClassConverter {
         output.creditId = item.creditId
         output.department = item.department
         output.gender = item.gender
-        output.id = item.id ?:0
+        output.id = item.id ?: 0
         output.job = item.job
         output.knownForDepartment = item.knownForDepartment
         output.name = item.name

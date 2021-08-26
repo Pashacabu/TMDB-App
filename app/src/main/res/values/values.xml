@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="main_left_padding">16dp</dimen>
+    <dimen name="main_top_padding">20dp</dimen>
     <dimen name="main_poster_width">530dp</dimen>
     <dimen name="main_poster_height">298dp</dimen>
     <dimen name="movie_card_width">190dp</dimen>
@@ -11,6 +12,7 @@
     <dimen name="movies_list_item_tags">8sp</dimen>
     <dimen name="movies_list_item_reviews_count">8sp</dimen>
     <dimen name="movies_list_item_title">14sp</dimen>
+    <dimen name="movies_list_item_title_smaller">10sp</dimen>
     <dimen name="movies_list_item_length">8sp</dimen>
     <dimen name="movie_details_back_button">12sp</dimen>
     <dimen name="movie_details_title">40sp</dimen>
@@ -22,5 +24,23 @@
     <dimen name="movie_details_actor">12sp</dimen>
 
     <dimen name="cast_recycler_item_image_height">80dp</dimen>
+
+    <dimen name="crew_recycler_size">300dp</dimen>
+    <dimen name="crew_recycler_item_height">20dp</dimen>
+    <dimen name="crew_recycler_spacer">4dp</dimen>
+
+    <dimen name="gallery_recycler_padding">16dp</dimen>
+    <dimen name="gallery_recycler_underline">1dp</dimen>
+
+    <dimen name="person_fragment_margin">8dp</dimen>
+    <dimen name="person_fragment_bio_height">300dp</dimen>
+
+    <dimen name="search_button">60dp</dimen>
+    <dimen name="search_textsize">20sp</dimen>
+
+    <integer name="transition_duration">200</integer>
+
+    <dimen name="spinner_item_drop_text_size">12sp</dimen>
+    <dimen name="spinner_item_text_size">6sp</dimen>
 
 </resources>

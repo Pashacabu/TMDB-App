@@ -8,8 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 class Decorator : RecyclerView.ItemDecoration() {
     var spacing = 0
 
-    fun itemSpacing(view: View, space: Int): RecyclerView.ItemDecoration {
-        this.spacing = space * view.context.resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT
+    fun itemSpacing(space: Int): RecyclerView.ItemDecoration {
+        this.spacing = space
         return this
     }
 

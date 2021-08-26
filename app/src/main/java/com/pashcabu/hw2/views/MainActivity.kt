@@ -6,7 +6,9 @@ import android.os.Bundle
 import com.pashcabu.hw2.R
 
 
-class MainActivity : AppCompatActivity(), MovieDetailsFragment.MovieDetailsClickListener {
+class MainActivity : AppCompatActivity(), MovieDetailsFragment.GoBackClickListener,
+    SearchFragment.GoBack {
+
 
     private var fragmentMoviesList = ViewPagerFragment()
 

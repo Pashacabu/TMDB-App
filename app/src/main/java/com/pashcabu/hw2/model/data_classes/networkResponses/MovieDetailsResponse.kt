@@ -27,7 +27,7 @@ data class MovieDetailsResponse(
     var originalTitle: String? = null,
     @SerialName("runtime")
     var runtime: Int? = null,
-    @SerialName("posterPath")
+    @SerialName("poster_path")
     var posterPath: String? = null,
     var spokenLanguages: List<SpokenLanguagesItem?>? = null,
     var productionCompanies: List<ProductionCompaniesItem?>? = null,
@@ -38,7 +38,8 @@ data class MovieDetailsResponse(
     @SerialName("adult")
     var adult: Boolean? = null,
     var homepage: String? = null,
-    var status: String? = null
+    var status: String? = null,
+    var liked: Boolean = false
 )
 
 @Serializable

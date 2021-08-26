@@ -7,9 +7,11 @@ import com.pashcabu.hw2.model.data_classes.Database
 
 class MyViewModelFactory {
 
-    class MoviesListViewModelFactory(private val arg: Database, private val worker : WorkManager) : ViewModelProvider.Factory {
+    class MoviesListViewModelFactory(private val db: Database, private val worker: WorkManager) :
+        ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return modelClass.getConstructor(Database::class.java, WorkManager::class.java).newInstance(arg, worker)
+            return modelClass.getConstructor(Database::class.java, WorkManager::class.java)
+                .newInstance(db, worker)
         }
     }
 
@@ -19,7 +21,14 @@ class MyViewModelFactory {
         }
     }
 
-    class ConnectionViewModelFactory() : ViewModelProvider.Factory{
+    class ConnectionViewModelFactory() : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            return modelClass.getConstructor().newInstance()
+        }
+
+    }
+
+    class PersonViewModelFactory() : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             return modelClass.getConstructor().newInstance()
         }

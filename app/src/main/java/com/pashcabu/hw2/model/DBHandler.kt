@@ -3,8 +3,10 @@ package com.pashcabu.hw2.model
 
 import android.util.Log
 import com.pashcabu.hw2.model.data_classes.Database
+import com.pashcabu.hw2.model.data_classes.networkResponses.CastResponse
 import com.pashcabu.hw2.model.data_classes.networkResponses.GenresListItem
 import com.pashcabu.hw2.model.data_classes.networkResponses.Movie
+import com.pashcabu.hw2.model.data_classes.networkResponses.MovieDetailsResponse
 import com.pashcabu.hw2.view_model.*
 
 
@@ -45,12 +47,17 @@ class DBHandler(private val database: Database) {
         return listOfMovies
     }
 
-    suspend fun addToFavourite(endpoint: String?, movie: Movie) {
+    suspend fun addToFavourite(movie: Movie) {
         database.movieDAO().addToFavourite(converter.movieToEntityItem(movie))
-        updateTable(endpoint, movie)
     }
 
-    private suspend fun updateTable(endpoint: String?, movie: Movie) {
+    suspend fun addToFavourite(_movie: MovieDetailsResponse) {
+        val movie = converter.movieToEntityItem(converter.detailsResponseToMovie(_movie))
+        Log.d("DBH", "Movie poster path is ${movie.posterPath}")
+        database.movieDAO().addToFavourite(movie)
+    }
+
+    suspend fun updateTable(endpoint: String?, movie: Movie) {
         when (endpoint) {
             NOW_PLAYING -> movie.id?.let {
                 database.movieDAO().updateNowPlaying(it, movie.addedToFavourite)
@@ -67,9 +74,13 @@ class DBHandler(private val database: Database) {
         }
     }
 
-    suspend fun deleteFromFavourite(endpoint: String?, movie: Movie) {
+    suspend fun deleteFromFavourite(movie: Movie) {
         movie.id?.let { database.movieDAO().deleteFromFavourite(it) }
-        updateTable(endpoint, movie)
+    }
+
+    suspend fun deleteFromFavourite(_movie: MovieDetailsResponse) {
+        val movie = converter.movieDetailsResponseToEntity(_movie)
+        movie.movieId?.let { database.movieDAO().deleteFromFavourite(it) }
     }
 
     suspend fun saveMoviesListToDB(endpoint: String?, list: List<Movie?>?) {
@@ -114,4 +125,43 @@ class DBHandler(private val database: Database) {
         val listToSave = converter.genresListRespToEntity(list)
         database.genresDAO().insertGenres(listToSave)
     }
+
+    suspend fun loadMovieDataFromDB(id: Int): MovieDetailsResponse {
+        return converter.movieDetailsEntityToResponse(database.detailsDAO().getMovieDetails(id))
+    }
+
+    suspend fun loadCastDataFromDB(id: Int): CastResponse {
+        val cast = CastResponse()
+        cast.castList =
+            converter.castEntityListToResponseList(database.detailsDAO().getCast(id))
+        cast.crew = converter.crewEntityListToResponseList(database.detailsDAO().getCrew(id))
+        return cast
+    }
+
+    suspend fun saveMovieDetails(movie: MovieDetailsResponse) {
+        val movieToSave = converter.movieDetailsResponseToEntity(movie)
+        database.detailsDAO().insertMovieDetails(movieToSave)
+    }
+
+    suspend fun saveCastDetails(cast: CastResponse, id: Int) {
+        val castToSave = cast.castList?.let { converter.castResponseListToEntityList(it) }
+        val crewToSave = cast.crew?.let { converter.crewResponseListToEntityList(it) }
+        castToSave?.forEach { it.movieId = id }
+        crewToSave?.forEach { it.movieId = id }
+        if (castToSave != null) {
+            database.detailsDAO().insertCast(castToSave)
+        }
+        if (crewToSave != null) {
+            database.detailsDAO().insertCrew(crewToSave)
+        }
+    }
+
+    suspend fun checkIfInFavourite(id: Int): Boolean {
+        val list = database.movieDAO().getOneFromFavourite(id)
+        return when {
+            list.isNullOrEmpty() -> false
+            else -> true
+        }
+    }
+
 }
