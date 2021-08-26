@@ -2,6 +2,8 @@
     <string name="app_name">TMDB App</string>
     <string name="back">Back</string>
     <string name="storylineHeader">Storyline</string>
+    <string name="budget">Budget: $ %s </string>
+    <string name="revenue">Revenue: $ %s</string>
     <string name="cast">Cast</string>
     <string name="crew">Crew</string>
     <string name="moviesList">Movies List</string>
