@@ -1,4 +1,4 @@
-# HW2 is a simple app to show some movies data from TMDB
+# TMDB-APP is a simple app to show some movies data from TMDB
 Uses TMDB API to get and show movies lists and movies details
 
 Currently able to 
