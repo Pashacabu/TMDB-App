@@ -2,9 +2,10 @@ package com.pashacabu.tmdb_app.model.data_classes.networkResponses
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import javax.inject.Inject
 
 @Serializable
-data class MovieListResponse(
+data class MovieListResponse (
     @SerialName("dates")
     var dates: Dates? = null,
     @SerialName("page")
@@ -18,7 +19,7 @@ data class MovieListResponse(
 )
 
 @Serializable
-data class PersonsMoviesListResponse(
+data class PersonsMoviesListResponse (
     @SerialName("page")
     val page: Int? = null,
     @SerialName("results")
@@ -30,7 +31,7 @@ data class PersonsMoviesListResponse(
 )
 
 @Serializable
-data class Dates(
+data class Dates (
     @SerialName("maximum")
     val maximum: String? = null,
     @SerialName("minimum")
@@ -38,7 +39,7 @@ data class Dates(
 )
 
 @Serializable
-data class Movie(
+data class Movie (
     @SerialName("overview")
     var overview: String? = null,
     @SerialName("original_language")

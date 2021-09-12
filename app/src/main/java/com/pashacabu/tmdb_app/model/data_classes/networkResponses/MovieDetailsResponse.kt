@@ -12,7 +12,7 @@ data class MovieDetailsResponse(
     var movieTitle: String? = null,
     @SerialName("backdrop_path")
     var backdropPath: String? = null,
-    var revenue: Int? = null,
+    var revenue: Long? = null,
     @SerialName("genres")
     var genres: List<GenresItem?>? = null,
     var popularity: Double? = null,
@@ -31,6 +31,7 @@ data class MovieDetailsResponse(
     var posterPath: String? = null,
     var spokenLanguages: List<SpokenLanguagesItem?>? = null,
     var productionCompanies: List<ProductionCompaniesItem?>? = null,
+    @SerialName("release_date")
     var releaseDate: String? = null,
     @SerialName("vote_average")
     var voteAverage: Double? = null,

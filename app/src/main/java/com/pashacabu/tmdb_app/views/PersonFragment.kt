@@ -12,32 +12,39 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.material.transition.MaterialSharedAxis
 import com.pashacabu.tmdb_app.R
 import com.pashacabu.tmdb_app.model.ConnectionChecker
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.PersonResponse
 import com.pashacabu.tmdb_app.view_model.MoviesListViewModel
-import com.pashacabu.tmdb_app.view_model.MyViewModelFactory
 import com.pashacabu.tmdb_app.view_model.PersonViewModel
 import com.pashacabu.tmdb_app.views.adapters.MySpinnerAdapter
 import com.pashacabu.tmdb_app.views.adapters.SpinnerSortingInterface
 import com.pashacabu.tmdb_app.views.gallery.GalleryDialogFragment
 import com.pashacabu.tmdb_app.views.myNestedScrollView.MyNestedScrollView
+import com.pashacabu.tmdb_app.views.utils.GoBackInterface
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class PersonFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
     AdapterView.OnItemSelectedListener {
 
     private var personId = 0
     private var person: PersonResponse = PersonResponse()
-    private lateinit var viewModel: PersonViewModel
-    private lateinit var connectionChecker: ConnectionChecker
+    private val viewModel: PersonViewModel by viewModels()
+    @Inject
+    lateinit var connectionChecker: ConnectionChecker
     private lateinit var picture: ImageView
     private lateinit var name: TextView
     private lateinit var occupation: TextView
@@ -48,11 +55,12 @@ class PersonFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
     private lateinit var bio: TextView
     private lateinit var sortSpinner: Spinner
     private lateinit var back: View
+    private lateinit var homeBtn: ImageView
     private lateinit var warning: TextView
     private lateinit var personSwipeRefresh: SwipeRefreshLayout
     private lateinit var personScrollView: MyNestedScrollView
     private lateinit var perssonMoviesContainer: FragmentContainerView
-    private var goBackClickListener: MovieDetailsFragment.GoBackClickListener? = null
+    private var goBackClickListener: GoBackInterface? = null
     private lateinit var listViewModel: MoviesListViewModel
     private lateinit var fragment: MoviesListFragment
     private lateinit var gallery: GalleryDialogFragment
@@ -71,16 +79,9 @@ class PersonFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is MovieDetailsFragment.GoBackClickListener) {
+        if (context is GoBackInterface) {
             goBackClickListener = context
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val factory = MyViewModelFactory.PersonViewModelFactory()
-        viewModel = ViewModelProvider(this, factory).get(PersonViewModel::class.java)
-        connectionChecker = ConnectionChecker.getInstance(requireContext())
     }
 
     override fun onCreateView(
@@ -104,10 +105,8 @@ class PersonFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
             delay(100) //waiting for fragment to initialize and attach to context
             listViewModel =
                 fragment.let { ViewModelProvider(it).get(MoviesListViewModel::class.java) }
-            if (this@PersonFragment::listViewModel.isInitialized) {
-                CoroutineScope(Dispatchers.Main).launch { subscribeViewModels() }
-            }
         }
+        observeViewModels()
     }
 
     private fun addMoviesListFragment(): MoviesListFragment {
@@ -134,7 +133,7 @@ class PersonFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
         return fragment as MoviesListFragment
     }
 
-    private fun subscribeViewModels() {
+    private fun observeViewModels() {
         connectionChecker.observe(this.viewLifecycleOwner, {
             connectionObserver(it)
             viewModel.setConnectionState(it)
@@ -199,7 +198,10 @@ class PersonFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
         picture = view.findViewById(R.id.personPicture)
         picture.setOnClickListener {
             val manager = requireActivity().supportFragmentManager
-            gallery = GalleryDialogFragment.newInstance(person)
+            gallery = when (val fragment = manager.findFragmentByTag(person.name)) {
+                null -> GalleryDialogFragment.newInstance(person)
+                else -> fragment as GalleryDialogFragment
+            }
             gallery.show(manager, person.name)
         }
         name = view.findViewById(R.id.personName)
@@ -214,13 +216,31 @@ class PersonFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
         }
         back = view.findViewById(R.id.backTouch)
         back.setOnClickListener {
-            goBackClickListener?.onBackArrowPressed()
+            goBackClickListener?.goBack()
         }
         warning = view.findViewById(R.id.offline_warning)
         sortSpinner = view.findViewById(R.id.sortBySpinner)
         sortSpinner.adapter = MySpinnerAdapter(spinnerClickListener)
         sortSpinner.dropDownHorizontalOffset =
             resources.getDimension(R.dimen.crew_recycler_spacer).toInt()
+        homeBtn = view.findViewById(R.id.home)
+        homeBtn.transitionName = "home"
+        homeBtn.setOnClickListener {
+            val fragment =
+                requireActivity().supportFragmentManager.findFragmentByTag(MainActivity.VIEW_PAGER_TAG)
+            fragment?.enterTransition = MaterialSharedAxis(MaterialSharedAxis.Y, true).apply {
+                duration = requireContext().resources.getInteger(R.integer.transition_duration) * 2
+                    .toLong()
+            }
+            this.exitTransition = MaterialSharedAxis(MaterialSharedAxis.Y, true).apply {
+                duration = requireContext().resources.getInteger(R.integer.transition_duration) * 2
+                    .toLong()
+            }
+            requireActivity().supportFragmentManager.popBackStackImmediate(
+                MoviesListFragment.MOVIESLIST,
+                FragmentManager.POP_BACK_STACK_INCLUSIVE
+            )
+        }
     }
 
     private fun collapseBio(tv: TextView) {

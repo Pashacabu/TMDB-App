@@ -2,8 +2,9 @@ package com.pashacabu.tmdb_app.model
 
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.*
 import com.pashacabu.tmdb_app.model.data_classes.room_db_tables.*
+import javax.inject.Inject
 
-class ClassConverter {
+class ClassConverter @Inject constructor() {
     fun movieToEntityItem(movie: Movie?): MoviesListItem {
         val item = MoviesListItem()
         item.id = movie?.id!!

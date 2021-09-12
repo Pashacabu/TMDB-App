@@ -20,13 +20,13 @@
             android:id="@+id/backArrow"
             android:layout_width="9dp"
             android:layout_height="15dp"
-            android:src="@drawable/path"
+            android:src="@drawable/ic_back_image"
             android:layout_gravity="center_vertical"
             android:layout_weight="2"
             />
 
         <TextView
-            android:id="@+id/backButton"
+            android:id="@+id/backText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
@@ -34,8 +34,9 @@
             android:layout_marginTop="0dp"
             android:alpha="0.5"
             android:text="@string/back"
-            android:textColor="@color/white"
+            android:textColor="@color/pink_ish"
             android:textSize="@dimen/movie_details_back_button"
+            android:textStyle="bold"
             android:layout_gravity="center_vertical"
             android:layout_weight="8"
             />
@@ -54,6 +55,7 @@
             android:textColorHint="@color/gray_ish"
             android:layout_weight="80"
             android:drawableEnd="@android:drawable/ic_menu_search"
+            android:drawableTint="@color/pink_ish"
             />
 
 

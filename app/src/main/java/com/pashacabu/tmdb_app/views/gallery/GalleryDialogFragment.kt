@@ -1,5 +1,6 @@
 package com.pashacabu.tmdb_app.views.gallery
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.*
 import android.widget.ImageView
@@ -54,6 +55,7 @@ class GalleryDialogFragment() : DialogFragment() {
 
     }
 
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -70,9 +72,10 @@ class GalleryDialogFragment() : DialogFragment() {
         findViews(view)
         setUpAdapter(imagesRecycler)
         setUpSwipeListener()
-        loadImages()
+        loadImages(savedInstanceState)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setUpSwipeListener() {
         iBig.setOnTouchListener(OnSwipeTouchListener(requireContext(), swipeInterface))
     }
@@ -82,9 +85,16 @@ class GalleryDialogFragment() : DialogFragment() {
         height = requireContext().resources.displayMetrics.heightPixels
     }
 
-    private fun loadImages() {
+    private fun loadImages(savedInstanceState: Bundle?) {
         adapter.loadPerson(person)
-        loadBigP(adapter.getFirstImage())
+        when (val current = savedInstanceState?.getString(cImageKey)) {
+            "", null -> loadBigP(adapter.getFirstImage())
+            else -> {
+                loadBigP(current)
+                adapter.select(savedInstanceState.getInt(cPositionKey))
+            }
+        }
+
     }
 
     private fun loadBigP(string: String?) {
@@ -125,6 +135,11 @@ class GalleryDialogFragment() : DialogFragment() {
 
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("current_image", adapter.getCurrentImage())
+        outState.putInt("current_pos", adapter.outCurrentItem)
+    }
+
     companion object {
         fun newInstance(person: PersonResponse): GalleryDialogFragment {
             val arg = Bundle()
@@ -134,6 +149,9 @@ class GalleryDialogFragment() : DialogFragment() {
             fragment.arguments = arg
             return fragment
         }
+
+        const val cImageKey = "current_image"
+        const val cPositionKey = "current_pos"
 
     }
 }

@@ -16,13 +16,18 @@ import com.google.android.material.transition.MaterialElevationScale
 import com.pashacabu.tmdb_app.R
 import com.pashacabu.tmdb_app.view_model.*
 import com.pashacabu.tmdb_app.views.adapters.ScreenSlideAdapter
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ViewPagerFragment : Fragment() {
 
-    var viewPager: ViewPager2? = null
+    private var viewPager: ViewPager2? = null
     lateinit var tabLayout: TabLayout
     lateinit var tabs: Array<String>
     lateinit var searchButton: ImageView
+    lateinit var vpAdapter: ScreenSlideAdapter
+
 
 
     override fun onCreateView(
@@ -54,16 +59,19 @@ class ViewPagerFragment : Fragment() {
             }
             activity?.supportFragmentManager?.beginTransaction()
                 ?.replace(R.id.fragment_container, fragment)
-                ?.addToBackStack(SEARCH)
+                ?.addToBackStack(VIEWPAGER)
                 ?.addSharedElement(searchButton, searchButton.transitionName)
                 ?.commit()
         }
-        val vPAdapter = ScreenSlideAdapter(this)
-        viewPager?.adapter = vPAdapter
+        vpAdapter = ScreenSlideAdapter(this)
+        viewPager?.adapter = vpAdapter
         TabLayoutMediator(tabLayout, viewPager as ViewPager2) { tab, position ->
             tab.text = tabs[position]
         }.attach()
         viewPager?.setCurrentItem(1, false)
 
+    }
+    companion object{
+        const val VIEWPAGER="ViewPager"
     }
 }

@@ -10,7 +10,6 @@ import com.pashacabu.tmdb_app.model.data_classes.room_db_tables.*
 
 @Database(
     entities = [
-//        DBMoviesList::class,
         DBNowPlaying::class,
         DBPopular::class,
         DBTopRated::class,
@@ -31,7 +30,7 @@ abstract class Database : RoomDatabase() {
     abstract fun detailsDAO(): DetailsDAO
 
     companion object {
-        private const val DB_NAME = "myDB"
+        const val DB_NAME = "myDB"
 
         fun createDB(context: Context): com.pashacabu.tmdb_app.model.data_classes.Database {
             return Room.databaseBuilder(

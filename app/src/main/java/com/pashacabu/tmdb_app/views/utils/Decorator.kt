@@ -1,10 +1,11 @@
-package com.pashacabu.tmdb_app.views
+package com.pashacabu.tmdb_app.views.utils
 
 import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import javax.inject.Inject
 
-class Decorator : RecyclerView.ItemDecoration() {
+class Decorator @Inject constructor() : RecyclerView.ItemDecoration() {
     var spacing = 0
 
     fun itemSpacing(space: Int): RecyclerView.ItemDecoration {

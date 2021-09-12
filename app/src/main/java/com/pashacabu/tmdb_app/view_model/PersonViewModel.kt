@@ -7,10 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.pashacabu.tmdb_app.model.NetworkModule
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.PersonResponse
 import com.pashacabu.tmdb_app.model.SingleNetwork
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlin.Exception
 
-class PersonViewModel : ViewModel() {
+@HiltViewModel
+class PersonViewModel @Inject constructor() : ViewModel() {
 
     private val mutablePersonData: MutableLiveData<PersonResponse> = MutableLiveData()
     private val mutableLoadingState: MutableLiveData<Boolean> = MutableLiveData(false)

@@ -13,9 +13,10 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 
-class NetworkModule {
+class NetworkModule @Inject constructor() {
 
 
     private val json = Json {

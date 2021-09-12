@@ -8,10 +8,12 @@ import com.pashacabu.tmdb_app.model.data_classes.networkResponses.GenresListItem
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.Movie
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.MovieDetailsResponse
 import com.pashacabu.tmdb_app.view_model.*
+import javax.inject.Inject
 
 
-class DBHandler(private val database: Database) {
-    private val converter = com.pashacabu.tmdb_app.model.ClassConverter()
+class DBHandler @Inject constructor(private val database: Database,
+private val converter: ClassConverter) {
+//    private val converter = com.pashacabu.tmdb_app.model.ClassConverter()
 
     suspend fun loadGenresFromDB(): MutableMap<Int?, String?> {
         val output: MutableMap<Int?, String?> = mutableMapOf()
@@ -54,6 +56,10 @@ class DBHandler(private val database: Database) {
     suspend fun addToFavourite(_movie: MovieDetailsResponse) {
         val movie = converter.movieToEntityItem(converter.detailsResponseToMovie(_movie))
         database.movieDAO().addToFavourite(movie)
+    }
+
+    suspend fun getListOfFavourite(): List<Movie?> {
+        return converter.entityItemsListToMovieList(database.movieDAO().getListOfFavourite())
     }
 
     suspend fun updateTable(endpoint: String?, movie: Movie) {
@@ -161,6 +167,31 @@ class DBHandler(private val database: Database) {
             list.isNullOrEmpty() -> false
             else -> true
         }
+    }
+
+    suspend fun deleteLatestMovieData(latestID: Int) {
+        database.detailsDAO().deleteLatestMovie()
+        database.detailsDAO().deleteLatestCast(latestID)
+        database.detailsDAO().deleteLatestCrew(latestID)
+    }
+
+    suspend fun saveLatestMovieData(movie: MovieDetailsResponse, cast: CastResponse?) {
+        database.detailsDAO().saveLatestMovie(converter.movieDetailsResponseToEntity(movie))
+        val castForDB = cast?.castList?.let { converter.castResponseListToEntityList(it) }
+        val crewForDB = cast?.crew?.let { converter.crewResponseListToEntityList(it) }
+        castForDB?.forEach { it.movieId = movie.movieId ?:0 }
+        crewForDB?.forEach { it.movieId = movie.movieId ?:0 }
+        if (castForDB != null) {
+            database.detailsDAO().insertCast(castForDB)
+        }
+        if (crewForDB != null) {
+            database.detailsDAO().insertCrew(crewForDB)
+        }
+
+    }
+
+    suspend fun getLatestId() : List<Int> {
+        return database.detailsDAO().getLatestID()
     }
 
 }

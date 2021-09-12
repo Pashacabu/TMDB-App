@@ -15,10 +15,13 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.transition.MaterialElevationScale
 import com.pashacabu.tmdb_app.R
 import com.pashacabu.tmdb_app.view_model.*
+import com.pashacabu.tmdb_app.views.utils.GoBackInterface
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class SearchFragment : Fragment() {
 
@@ -31,7 +34,7 @@ class SearchFragment : Fragment() {
     private var searchQuery = String()
     private lateinit var viewModel: MoviesListViewModel
     private var currentFragment: MoviesListFragment? = null
-    private var goBackClickListener: GoBack? = null
+    private var goBackClickListener: GoBackInterface? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,15 +78,15 @@ class SearchFragment : Fragment() {
         searchLayout = view.findViewById(R.id.search_layout)
         searchLayout.transitionName = transName
         backArrow = view.findViewById(R.id.backArrow)
-        backTV = view.findViewById(R.id.backButton)
-        backArrow.setOnClickListener { goBackClickListener?.onBackArrowPressed() }
-        backTV.setOnClickListener { goBackClickListener?.onBackArrowPressed() }
+        backTV = view.findViewById(R.id.backText)
+        backArrow.setOnClickListener { goBackClickListener?.goBack() }
+        backTV.setOnClickListener { goBackClickListener?.goBack() }
 
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is GoBack) {
+        if (context is GoBackInterface) {
             goBackClickListener = context
         }
     }
@@ -127,10 +130,6 @@ class SearchFragment : Fragment() {
         } catch (e: Exception) {
 //            Toast.makeText(requireContext(), "View model is empty!", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    interface GoBack {
-        fun onBackArrowPressed()
     }
 
     companion object {

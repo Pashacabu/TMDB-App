@@ -44,7 +44,7 @@ class AdapterGallery(private val photoListener: PhotoInterface) :
 
     }
 
-    private fun select(position: Int) {
+    fun select(position: Int) {
         notifyItemChanged(currentItem)
         currentItem = position
         notifyItemChanged(currentItem)
@@ -63,6 +63,11 @@ class AdapterGallery(private val photoListener: PhotoInterface) :
         currentItem = 0
         return person?.images?.profiles?.get(currentItem)?.filePath
     }
+
+    fun getCurrentImage(): String? {
+        return person?.images?.profiles?.get(currentItem)?.filePath
+    }
+
 
     fun getNext(): String? {
         var result: String? = null

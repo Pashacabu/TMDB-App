@@ -4,8 +4,9 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.pashacabu.tmdb_app.views.MovieDetailsFragment
 import com.pashacabu.tmdb_app.views.MoviesListFragment
+import javax.inject.Inject
 
-class ScreenSlideAdapter(fr: Fragment) : FragmentStateAdapter(fr) {
+class ScreenSlideAdapter (fr: Fragment) : FragmentStateAdapter(fr) {
 
     override fun getItemCount(): Int {
         return 6

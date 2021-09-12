@@ -6,9 +6,13 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.lifecycle.LiveData
+import dagger.hilt.android.qualifiers.ActivityContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 
-class ConnectionChecker(context: Context) : LiveData<Boolean>() {
+
+class ConnectionChecker @Inject constructor(context: Context) : LiveData<Boolean>() {
 
     private val manager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -71,5 +75,5 @@ class ConnectionChecker(context: Context) : LiveData<Boolean>() {
         }
     }
 
-    companion object : SingletonHolder<ConnectionChecker, Context>(::ConnectionChecker)
+//    companion object : SingletonHolder<ConnectionChecker, Context>(::ConnectionChecker)
 }

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="main_left_padding">16dp</dimen>
-    <dimen name="main_top_padding">20dp</dimen>
+    <dimen name="main_top_padding">30dp</dimen>
+    <dimen name="top_margin">16dp</dimen>
+    <dimen name="person_fragment_top_padding">60dp</dimen>
     <dimen name="main_poster_width">530dp</dimen>
     <dimen name="main_poster_height">298dp</dimen>
     <dimen name="movie_card_width">190dp</dimen>

@@ -11,10 +11,19 @@ import com.pashacabu.tmdb_app.model.data_classes.networkResponses.CastResponse
 import com.pashacabu.tmdb_app.model.data_classes.Database
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.MovieDetailsResponse
 import com.pashacabu.tmdb_app.model.SingleNetwork
+import com.pashacabu.tmdb_app.model.data_classes.DataClassSupplier
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MovieDetailsViewModel(private val database: Database) : ViewModel() {
+@HiltViewModel
+class MovieDetailsViewModel @Inject constructor(
+    private val dbHandler: DBHandler,
+    private val network : NetworkModule.TMDBInterface,
+//    private val converter: ClassConverter,
+    private val dataClassSupplier: DataClassSupplier
+) : ViewModel() {
     private val mutableMovieDetails: MutableLiveData<MovieDetailsResponse> = MutableLiveData()
     private val mutableCastData: MutableLiveData<CastResponse> = MutableLiveData(CastResponse())
     private val mutableLoadingState: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -25,10 +34,12 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
     val castData: LiveData<CastResponse> get() = mutableCastData
     val loadingState: LiveData<Boolean> get() = mutableLoadingState
     val errorState: LiveData<String> get() = mutableErrorState
-    private val network = SingleNetwork.service
-    private val converter = com.pashacabu.tmdb_app.model.ClassConverter()
+//    private val network = SingleNetwork.service
+//    private val converter = ClassConverter()
     private var cast = CastResponse()
-    private val dbHandler = DBHandler(database)
+//    @Inject
+//    lateinit var dbHandler: DBHandler
+//    private val dbHandler = DBHandler(database)
 
     private fun showError() {
         mutableErrorState.value = "Connection error!"
@@ -36,7 +47,7 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
 
     fun loadData(id: Int) {
         viewModelScope.launch {
-            if (mutableMovieDetails.value == null || mutableMovieDetails.value == MovieDetailsResponse()) {
+            if (mutableMovieDetails.value == null || mutableMovieDetails.value == dataClassSupplier.supplyDetails()) {
                 var time = 0
                 while (mutableConnectionState.value == null) {
                     delay(10) //mutableConnectionState.value changes to actual with a delay, waiting for network status
@@ -48,7 +59,6 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
                         0 -> getLatest()
                         else -> loadMovieDataFromAPI(id)
                     }
-//                    loadMovieDataFromAPI(id)
                 } else {
                     loadMovieDataFromDB(id)
                     mutableErrorState.value = "Offline data"
@@ -64,34 +74,38 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
         when (mutableConnectionState.value) {
             true -> {
                 val movie = network.getLatest(NetworkModule.api_key)
-                val id = movie.movieId ?: 0
+//                val id = movie.movieId ?: 0
                 val cast = movie.movieId?.let { network.getActors(it, NetworkModule.api_key) }
                 mutableMovieDetails.postValue(movie)
                 mutableCastData.postValue(cast)
-                val castForDB = cast?.castList?.let { converter.castResponseListToEntityList(it) }
-                val crewForDB = cast?.crew?.let { converter.crewResponseListToEntityList(it) }
-                castForDB?.forEach { it.movieId = id }
-                crewForDB?.forEach { it.movieId = id }
-                val latestIDs = database.detailsDAO().getLatestID()
+//                val castForDB = cast?.castList?.let { converter.castResponseListToEntityList(it) }
+//                val crewForDB = cast?.crew?.let { converter.crewResponseListToEntityList(it) }
+//                castForDB?.forEach { it.movieId = id }
+//                crewForDB?.forEach { it.movieId = id }
+//                val latestIDs = database.detailsDAO().getLatestID()
+                val latestIDs = dbHandler.getLatestId()
                 var latestID = 0
                 if (latestIDs.isNotEmpty()) {
                     latestID = latestIDs[0]
                 }
-                database.detailsDAO().deleteLatestCast(latestID)
-                database.detailsDAO().deleteLatestCrew(latestID)
-                database.detailsDAO().deleteLatestMovie()
-                database.detailsDAO().saveLatestMovie(converter.movieDetailsResponseToEntity(movie))
-                if (castForDB != null) {
-                    database.detailsDAO().insertCast(castForDB)
-                }
-                if (crewForDB != null) {
-                    database.detailsDAO().insertCrew(crewForDB)
-                }
+                dbHandler.deleteLatestMovieData(latestID)
+//                database.detailsDAO().deleteLatestCast(latestID)
+//                database.detailsDAO().deleteLatestCrew(latestID)
+//                database.detailsDAO().deleteLatestMovie()
+//                database.detailsDAO().saveLatestMovie(converter.movieDetailsResponseToEntity(movie))
+//                if (castForDB != null) {
+//                    database.detailsDAO().insertCast(castForDB)
+//                }
+//                if (crewForDB != null) {
+//                    database.detailsDAO().insertCrew(crewForDB)
+//                }
+                dbHandler.saveLatestMovieData(movie, cast)
                 mutableLoadingState.postValue(false)
             }
             else -> {
-                val id = database.detailsDAO().getLatestID()[0]
-                loadMovieDataFromDB(id)
+//                val id = database.detailsDAO().getLatestID()[0]
+//                loadMovieDataFromDB(id)
+                loadMovieDataFromDB(dbHandler.getLatestId()[0])
             }
         }
 
@@ -104,7 +118,7 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
         val dbCast = dbHandler.loadCastDataFromDB(id)
         val liked = dbHandler.checkIfInFavourite(id)
         movie.liked = liked
-        if (movie != MovieDetailsResponse()) {
+        if (movie != dataClassSupplier.supplyDetails()) {
             loaded = true
             cast.castList = dbCast.castList
             cast.crew = dbCast.crew
@@ -113,7 +127,7 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
             mutableMovieDetails.value = movie
             mutableCastData.value = cast
         } else {
-            mutableMovieDetails.value = MovieDetailsResponse()
+            mutableMovieDetails.value = dataClassSupplier.supplyDetails()
             mutableErrorState.value = "No data in DB!"
         }
         mutableLoadingState.value = false
@@ -159,8 +173,8 @@ class MovieDetailsViewModel(private val database: Database) : ViewModel() {
     fun refreshMovieDetailsData(id: Int) {
         viewModelScope.launch {
             mutableLoadingState.value = true
-            mutableMovieDetails.value = MovieDetailsResponse()
-            mutableCastData.value = CastResponse()
+            mutableMovieDetails.value = dataClassSupplier.supplyDetails()
+            mutableCastData.value = dataClassSupplier.supplyCast()
             loadData(id)
             mutableLoadingState.value = false
         }

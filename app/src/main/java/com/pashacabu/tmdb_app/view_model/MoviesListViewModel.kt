@@ -11,13 +11,24 @@ import com.pashacabu.tmdb_app.model.data_classes.networkResponses.GenresListItem
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.Movie
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.MovieListResponse
 import com.pashacabu.tmdb_app.views.PersonFragment
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import kotlin.Exception
 
-class MoviesListViewModel(private val database: Database, private val worker: WorkManager) :
+@HiltViewModel
+class MoviesListViewModel @Inject constructor(
+//    private val database: Database,
+    private val worker: WorkManager,
+    private val dbHandler: DBHandler,
+    private val network : NetworkModule.TMDBInterface,
+    private val converter: ClassConverter,
+    private val dataClassSupplier: DataClassSupplier
+) :
     ViewModel() {
+
 
     private val mutableMoviesList = MutableLiveData<List<Movie?>?>(emptyList())
     private val mutableAmountOfPages = MutableLiveData<Int>()
@@ -41,9 +52,12 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
     private var personID = 0
     private var endpoint = ""
     private var sorting = SortingsList.POP_Q_DW
-    private val network = SingleNetwork.service
-    private val converter = com.pashacabu.tmdb_app.model.ClassConverter()
-    private val dbHandler = DBHandler(database)
+//    private val network = SingleNetwork.service
+//    private val converter = com.pashacabu.tmdb_app.model.ClassConverter()
+
+    //    @Inject
+//    lateinit var dbHandler : DBHandler
+//    private val dbHandler = DBHandler(database)
 
     private val constraints = Constraints.Builder()
         .setRequiresCharging(true)
@@ -74,10 +88,12 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         sorting = _sorting
         loadedList.clear()
         refreshMovieList(endpoint, currentPage = 1)
+        Log.d("VM", "scrollUp value = true")
         mutableScrollUp.value = true
     }
 
     fun resetScrollUp() {
+        Log.d("VM", "scrollUp value = false")
         mutableScrollUp.value = false
     }
 
@@ -183,9 +199,10 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         var result = false
         genresAll = dbHandler.loadGenresFromDB()
         val movies = dbHandler.loadMoviesListFromDB(endpoint)
-        val listOfFavourite = converter.entityItemsListToMovieList(
-            database.movieDAO().getListOfFavourite()
-        )
+//        val listOfFavourite = converter.entityItemsListToMovieList(
+//            database.movieDAO().getListOfFavourite()
+//        )
+        val listOfFavourite = dbHandler.getListOfFavourite()
         movies?.forEach { checkIfInFavourite(it, listOfFavourite) }
         loadedList.addAll(movies ?: listOf())
         if (endpoint != FAVOURITE) {
@@ -316,7 +333,7 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
         if (mutableLoadingState.value == false) {
             mutableLoadingState.postValue(true)
         }
-        var newListOfMovies = MovieListResponse()
+        var newListOfMovies = dataClassSupplier.supplyList()
         when (endpoint) {
             SEARCH -> {
                 try {
@@ -379,10 +396,11 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
                     genresAll
                 )
             }
-        val listOfFavourite =
-            converter.entityItemsListToMovieList(
-                database.movieDAO().getListOfFavourite()
-            )
+//        val listOfFavourite =
+//            converter.entityItemsListToMovieList(
+//                database.movieDAO().getListOfFavourite()
+//            )
+        val listOfFavourite = dbHandler.getListOfFavourite()
         newListWithGenres = updateListBasedOnListOfFavourite(newListWithGenres, listOfFavourite)
         when (isLoadingMore) {
             true -> {
@@ -428,9 +446,10 @@ class MoviesListViewModel(private val database: Database, private val worker: Wo
     fun updateLoadedListBasedOnFavourite(endpoint: String?) {
         if (!loadedList.isNullOrEmpty()) {
             viewModelScope.launch {
-                val listOfFavourite = converter.entityItemsListToMovieList(
-                    database.movieDAO().getListOfFavourite()
-                )
+//                val listOfFavourite = converter.entityItemsListToMovieList(
+//                    database.movieDAO().getListOfFavourite()
+//                )
+                val listOfFavourite = dbHandler.getListOfFavourite()
                 val list = mutableListOf<Movie>()
                 for (item in loadedList) {
                     list.add(item?.copy() ?: Movie())

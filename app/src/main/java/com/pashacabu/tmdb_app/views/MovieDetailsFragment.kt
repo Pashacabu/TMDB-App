@@ -11,7 +11,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.CalendarContract
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,8 +20,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -30,22 +30,27 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.transition.MaterialContainerTransform
 import com.google.android.material.transition.MaterialElevationScale
+import com.google.android.material.transition.MaterialSharedAxis
+import com.google.android.material.transition.MaterialSharedAxis.Y
 import com.pashacabu.tmdb_app.*
 import com.pashacabu.tmdb_app.model.ConnectionChecker
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.CastResponse
-import com.pashacabu.tmdb_app.model.data_classes.Database
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.CrewItem
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.MovieDetailsResponse
 import com.pashacabu.tmdb_app.view_model.MovieDetailsViewModel
 import com.pashacabu.tmdb_app.views.adapters.MovieDetailsActorsClickListener
 import com.pashacabu.tmdb_app.views.adapters.MovieDetailsCastAdapter
-import com.pashacabu.tmdb_app.view_model.MyViewModelFactory
 import com.pashacabu.tmdb_app.view_model.NO_ERROR
 import com.pashacabu.tmdb_app.views.adapters.MovieDetailsCrewAdapter
 import com.pashacabu.tmdb_app.views.adapters.MovieDetailsCrewClickListener
+import com.pashacabu.tmdb_app.views.utils.Decorator
+import com.pashacabu.tmdb_app.views.utils.GoBackInterface
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
+import javax.inject.Inject
 
 
+@AndroidEntryPoint
 class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
 
@@ -58,6 +63,8 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private lateinit var reviews: TextView
     private lateinit var budget: TextView
     private lateinit var revenu: TextView
+    private lateinit var release: TextView
+    private lateinit var runtime: TextView
     private lateinit var story: TextView
     private lateinit var castTitle: TextView
     private lateinit var crewTitle: TextView
@@ -66,18 +73,23 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var scrollView: ScrollView
     private lateinit var offlineWarning: TextView
-    private lateinit var connectionChecker: ConnectionChecker
+    @Inject
+    lateinit var connectionChecker: ConnectionChecker
+    @Inject
+    lateinit var decorator: Decorator
     private lateinit var watchLaterBtn: Button
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var likeBtn: ImageView
     private var movieWithDetails = MovieDetailsResponse()
     private var toast: Toast? = null
-    private var backArrow: ImageView? = null
-    private var backButton: TextView? = null
-    private var goBackClickListener: GoBackClickListener? = null
+    private lateinit var backArrow: ImageView
+    private lateinit var backButton: TextView
+    private lateinit var backTouchZone: ImageView
+    private lateinit var homeBtn: ImageView
+    private var goBackClickListener: GoBackInterface? = null
     private var movieDetailsActorsClickListener = object : MovieDetailsActorsClickListener {
         override fun onActorSelected(personID: Int, view: View) {
-            when (hasConnection){
+            when (hasConnection) {
                 true -> {
                     var personFragment =
                         requireActivity().supportFragmentManager.findFragmentByTag("Person$personID")
@@ -86,18 +98,20 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                         val bundle = personFragment.arguments ?: Bundle()
                         bundle.putString("transition_name", view.transitionName)
                         personFragment.arguments = bundle
-                        personFragment.sharedElementEnterTransition = MaterialContainerTransform().apply {
-                            duration =
-                                requireContext().resources.getInteger(R.integer.transition_duration)
-                                    .toLong()
-                            scrimColor = Color.TRANSPARENT
-                        }
-                        personFragment.sharedElementReturnTransition = MaterialContainerTransform().apply {
-                            duration =
-                                requireContext().resources.getInteger(R.integer.transition_duration)
-                                    .toLong()
-                            scrimColor = Color.TRANSPARENT
-                        }
+                        personFragment.sharedElementEnterTransition =
+                            MaterialContainerTransform().apply {
+                                duration =
+                                    requireContext().resources.getInteger(R.integer.transition_duration)
+                                        .toLong()
+                                scrimColor = Color.TRANSPARENT
+                            }
+                        personFragment.sharedElementReturnTransition =
+                            MaterialContainerTransform().apply {
+                                duration =
+                                    requireContext().resources.getInteger(R.integer.transition_duration)
+                                        .toLong()
+                                scrimColor = Color.TRANSPARENT
+                            }
                     }
                     activity?.supportFragmentManager?.beginTransaction()
                         ?.setReorderingAllowed(true)
@@ -106,19 +120,13 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                             personFragment,
                             "Person$personID"
                         )
-                        ?.addToBackStack("Actor")
+                        ?.addToBackStack(DETAILS)
                         ?.addSharedElement(view, view.transitionName)
                         ?.commit()
                 }
                 else -> {
-                    toast = Toast.makeText(requireContext(), "No connection!", Toast.LENGTH_SHORT)
+                    toast = Toast.makeText(requireContext(), requireContext().getString(R.string.no_connection), Toast.LENGTH_SHORT)
                     toast?.show()
-//                    if (toast!=null){
-//                        toast?.cancel()
-//                    } else {
-//                        toast = Toast.makeText(requireContext(), "No connection!", Toast.LENGTH_SHORT)
-//                        toast?.show()
-//                    }
                 }
             }
 
@@ -132,18 +140,8 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
     private val crewAdapter = MovieDetailsCrewAdapter(crewClickListener)
     private var movieID = 0
-    private lateinit var viewModel: MovieDetailsViewModel
-    private lateinit var roomDB: Database
+    private val viewModel: MovieDetailsViewModel by viewModels()
     private var isRationaleShown = false
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        roomDB = Database.createDB(requireContext())
-        val factory = MyViewModelFactory.MoviesDetailsViewModelFactory(roomDB)
-        viewModel = ViewModelProvider(this, factory).get(MovieDetailsViewModel::class.java)
-        connectionChecker = ConnectionChecker.getInstance(requireContext())
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -165,7 +163,6 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             if (fragment != null && fragment.isVisible) {
                 outState.putInt("scroll", scrollView.scrollY)
             }
-
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -219,12 +216,14 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         viewModel.errorState.observe(this.viewLifecycleOwner, errorsObserver)
         when (movieID) {
             0 -> {
-                backArrow?.visibility = View.GONE
-                backButton?.visibility = View.GONE
+                backArrow.visibility = View.GONE
+                backButton.visibility = View.GONE
+                homeBtn.visibility = View.GONE
             }
             else -> {
-                backArrow?.visibility = View.VISIBLE
-                backButton?.visibility = View.VISIBLE
+                backArrow.visibility = View.VISIBLE
+                backButton.visibility = View.VISIBLE
+                homeBtn.visibility = View.VISIBLE
             }
         }
         view.doOnPreDraw { startPostponedEnterTransition() }
@@ -269,6 +268,11 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         reviews.text = context?.getString(R.string.reviews, movie.reviews)
         budget.text = requireContext().getString(R.string.budget, convertMoney(movie.budget))
         revenu.text = requireContext().getString(R.string.revenue, convertMoney(movie.revenue))
+        release.text = requireContext().getString(R.string.release_date, when {
+            movie.releaseDate.isNullOrEmpty() -> requireContext().getString(R.string.no_data)
+            else -> movie.releaseDate
+        } )
+        runtime.text = requireContext().getString(R.string.runtime, convertRuntime(movie.runtime))
         story.text = movie.overview
         when (movie.liked) {
             true -> likeBtn.setImageResource(R.drawable.like_positive)
@@ -276,30 +280,46 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         }
     }
 
-    private fun convertMoney(revenue : Int?) : String{
+    private fun convertRuntime(time : Int?) : String {
         var res = ""
-        if (revenue!=null){
-            var str = revenue.toString()
-            Log.d("DF", "str before reverse = $str")
+        res = when (time) {
+            0, null -> requireContext().getString(R.string.no_data)
+            else -> {
+                val m = time % 60
+                val h = (time-m)/60
+                "${h}h ${m}m"
+            }
+        }
+        return res
+    }
+
+    private fun convertMoney(number: Long?): String {
+        var res = ""
+        if (number != null && number != 0L) {
+            var str = number.toString()
             str = str.reversed()
-            Log.d("DF", "str after reverse = $str")
-            var list = str.chunked(3)
+            val list = str.chunked(3)
             list.reversed().forEach {
-                Log.d("DF", "list str = ${it.reversed()}")
-                res+=it.reversed()
-                res+=" "
+                res += it.reversed()
+                res += " "
             }
             res.trim()
-//            var i = 0
-//            for (char in str.length-1 downTo 0){
-//                if (i%3!=0){
-//                    i+=1
-//                    res+=char
-//                } else {
-//                    res+=" "
-//                    res+=char
-//                }
-//            }
+        } else {
+            res = "No data"
+        }
+        return res
+    }
+    private fun convertMoney(number: Int?): String {
+        var res = ""
+        if (number != null && number != 0) {
+            var str = number.toString()
+            str = str.reversed()
+            val list = str.chunked(3)
+            list.reversed().forEach {
+                res += it.reversed()
+                res += " "
+            }
+            res.trim()
         } else {
             res = "No data"
         }
@@ -336,18 +356,37 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         reviews = view.findViewById(R.id.reviews)
         budget = view.findViewById(R.id.budget)
         revenu = view.findViewById(R.id.revenue)
+        release = view.findViewById(R.id.release_date)
+        runtime = view.findViewById(R.id.runtime)
         story = view.findViewById(R.id.storylineDescription)
         castTitle = view.findViewById(R.id.cast_title)
         crewTitle = view.findViewById(R.id.crew_title)
         offlineWarning = view.findViewById(R.id.offline_warning)
         actorsRecyclerView = view.findViewById(R.id.actors_recycler_view)
         crewRecyclerView = view.findViewById(R.id.crew_recycler_view)
-
-        backArrow = view.findViewById<ImageView?>(R.id.backArrow)?.apply {
-            setOnClickListener { goBackClickListener?.onBackArrowPressed() }
+        homeBtn = view.findViewById(R.id.home)
+        homeBtn.transitionName = "home"
+        homeBtn.setOnClickListener {
+            val fragment =
+                requireActivity().supportFragmentManager.findFragmentByTag(MainActivity.VIEW_PAGER_TAG)
+            fragment?.enterTransition = MaterialSharedAxis(Y, true).apply {
+                duration = requireContext().resources.getInteger(R.integer.transition_duration) * 2
+                    .toLong()
+            }
+            this.exitTransition = MaterialSharedAxis(Y, true).apply {
+                duration = requireContext().resources.getInteger(R.integer.transition_duration) * 2
+                    .toLong()
+            }
+            requireActivity().supportFragmentManager.popBackStackImmediate(
+                MoviesListFragment.MOVIESLIST,
+                FragmentManager.POP_BACK_STACK_INCLUSIVE
+            )
         }
-        backButton = view.findViewById<TextView?>(R.id.backButton)?.apply {
-            setOnClickListener { goBackClickListener?.onBackArrowPressed() }
+
+        backArrow = view.findViewById<ImageView>(R.id.backArrow)
+        backButton = view.findViewById<TextView>(R.id.backText)
+        backTouchZone = view.findViewById<ImageView>(R.id.backTouch).apply {
+            setOnClickListener { goBackClickListener?.goBack() }
         }
         watchLaterBtn = view.findViewById(R.id.watchLaterButton)
         watchLaterBtn.setOnClickListener {
@@ -371,12 +410,12 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         val width = resources.displayMetrics.widthPixels
         when (orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
-                actorsRecyclerView.addItemDecoration(Decorator().itemSpacing((width * 0.1 / 6).toInt()))
-                crewRecyclerView.addItemDecoration(Decorator().itemSpacing((width * 0.1 / 6).toInt()))
+                actorsRecyclerView.addItemDecoration(decorator.itemSpacing((width * 0.1 / 6).toInt()))
+                crewRecyclerView.addItemDecoration(decorator.itemSpacing((width * 0.1 / 6).toInt()))
             }
             Configuration.ORIENTATION_LANDSCAPE -> {
-                actorsRecyclerView.addItemDecoration(Decorator().itemSpacing((width * 0.1 / 12).toInt()))
-                crewRecyclerView.addItemDecoration(Decorator().itemSpacing((width * 0.1 / 12).toInt()))
+                actorsRecyclerView.addItemDecoration(decorator.itemSpacing((width * 0.1 / 12).toInt()))
+                crewRecyclerView.addItemDecoration(decorator.itemSpacing((width * 0.1 / 12).toInt()))
             }
         }
 
@@ -484,7 +523,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                     false -> onPermissionNotGranted()
                 }
             }
-        if (context is GoBackClickListener) {
+        if (context is GoBackInterface) {
             goBackClickListener = context
         }
     }
@@ -500,9 +539,6 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         requestPermissionLauncher.unregister()
     }
 
-    interface GoBackClickListener {
-        fun onBackArrowPressed()
-    }
 
     companion object {
         fun newInstance(movieID: Int): MovieDetailsFragment {
@@ -515,6 +551,7 @@ class MovieDetailsFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
         const val TITLE = "movieTitle"
         private const val imageBigBaseUrl = "https://image.tmdb.org/t/p/w780"
+        const val DETAILS = "Details"
     }
 
     override fun onRefresh() {

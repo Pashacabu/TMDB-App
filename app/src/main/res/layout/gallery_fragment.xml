@@ -9,7 +9,7 @@
     <ImageView
         android:layout_width="9dp"
         android:layout_height="15dp"
-        android:src="@drawable/path"
+        android:src="@drawable/ic_back_image"
         android:id="@+id/previous"
         app:layout_constraintStart_toStartOf="@id/guidelineLeft"
         app:layout_constraintTop_toTopOf="@id/guidelineCenter"
@@ -18,11 +18,12 @@
     <ImageView
         android:layout_width="9dp"
         android:layout_height="15dp"
-        android:src="@drawable/path2"
+        android:src="@drawable/ic_forward_image"
         android:id="@+id/next"
         app:layout_constraintEnd_toStartOf="@id/guidelineRight"
         app:layout_constraintTop_toTopOf="@id/guidelineCenter"
-        app:layout_constraintBottom_toBottomOf="@id/guidelineCenter"/>
+        app:layout_constraintBottom_toBottomOf="@id/guidelineCenter"
+        />
 
         <ImageView
             android:layout_width="wrap_content"

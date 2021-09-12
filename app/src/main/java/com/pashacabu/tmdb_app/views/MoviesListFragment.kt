@@ -12,21 +12,26 @@ import android.widget.Toast
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import androidx.work.WorkManager
 import com.google.android.material.transition.MaterialContainerTransform
 import com.pashacabu.tmdb_app.R
 import com.pashacabu.tmdb_app.model.ConnectionChecker
-import com.pashacabu.tmdb_app.model.data_classes.Database
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.Movie
 import com.pashacabu.tmdb_app.view_model.*
 import com.pashacabu.tmdb_app.views.adapters.*
+import com.pashacabu.tmdb_app.views.utils.Decorator
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     private var movieListener: MoviesListAdapterInterface = object : MoviesListAdapterInterface {
@@ -50,6 +55,10 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                     scrimColor = Color.TRANSPARENT
                 }
             }
+            val tag = when (endpoint) {
+                PersonFragment.LIST -> PersonFragment.LIST
+                else -> MOVIESLIST
+            }
             activity?.supportFragmentManager?.beginTransaction()
                 ?.setReorderingAllowed(true)
                 ?.replace(
@@ -57,7 +66,7 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                     detailsFragment,
                     "details$id"
                 )
-                ?.addToBackStack("List")
+                ?.addToBackStack(tag)
                 ?.addSharedElement(view, view.transitionName)
                 ?.commit()
 
@@ -73,13 +82,16 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     private lateinit var moviesListRecyclerView: RecyclerView
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var offlineWarning: TextView
-    private lateinit var roomDB: Database
-    private lateinit var viewModel: MoviesListViewModel
+    private val viewModel : MoviesListViewModel by viewModels()
     private var endpoint: String? = null
     private var currentPage: Int = 1
     private var totalPages: Int = 0
     private var toast: Toast? = null
-    private lateinit var connectionChecker: ConnectionChecker
+    @Inject
+    lateinit var connectionChecker: ConnectionChecker
+    @Inject
+    lateinit var decorator: Decorator
+    private var recyclerOnGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -108,11 +120,11 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         val width = view.context.resources.displayMetrics.widthPixels
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             moviesListRecyclerView.layoutManager = GridLayoutManager(context, 2)
-            moviesListRecyclerView.addItemDecoration(Decorator().itemSpacing((width * 0.1 / 6).toInt()))
+            moviesListRecyclerView.addItemDecoration(decorator.itemSpacing((width * 0.1 / 6).toInt()))
             moviesListRecyclerView.setPadding((width * 0.1 / 6).toInt())
         } else {
             moviesListRecyclerView.layoutManager = GridLayoutManager(context, 4)
-            moviesListRecyclerView.addItemDecoration(Decorator().itemSpacing((width * 0.1 / 10).toInt()))
+            moviesListRecyclerView.addItemDecoration(decorator.itemSpacing((width * 0.1 / 10).toInt()))
             moviesListRecyclerView.setPadding((width * 0.1 / 10).toInt())
         }
         moviesListRecyclerView.adapter = adapter
@@ -129,15 +141,6 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             }
         }
 
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        roomDB = Database.createDB(requireContext())
-        val worker = WorkManager.getInstance(requireContext())
-        val factory = MyViewModelFactory.MoviesListViewModelFactory(roomDB, worker)
-        viewModel = ViewModelProvider(this, factory).get(MoviesListViewModel::class.java)
-        connectionChecker = ConnectionChecker.getInstance(requireContext())
     }
 
     override fun onResume() {
@@ -195,20 +198,37 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             connectionObserver(it)
         })
         viewModel.scrollUp.observe(this.viewLifecycleOwner, {
-            if (it){
+            if (it) {
                 scrollUp()
             }
         })
     }
 
-    private fun scrollUp(){
-        val listener = ViewTreeObserver.OnGlobalLayoutListener {
-            moviesListRecyclerView.layoutManager?.smoothScrollToPosition(moviesListRecyclerView, RecyclerView.State(), 0 )
-            viewModel.resetScrollUp()
+    private fun scrollUp() {
+        if (recyclerOnGlobalLayoutListener == null) {
+            recyclerOnGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+                moviesListRecyclerView.layoutManager?.smoothScrollToPosition(
+                    moviesListRecyclerView,
+                    RecyclerView.State(),
+                    0
+                )
+            }
+            moviesListRecyclerView.viewTreeObserver.addOnGlobalLayoutListener {
+                recyclerOnGlobalLayoutListener?.onGlobalLayout()
+            }
         }
-        moviesListRecyclerView.viewTreeObserver.addOnGlobalLayoutListener( ViewTreeObserver.OnGlobalLayoutListener() {
-            listener.onGlobalLayout()
-        })
+        viewModel.resetScrollUp()
+        CoroutineScope(Dispatchers.Default).launch {
+            delay(750)
+            removeGlobalLayoutObserver()
+        }
+    }
+
+    private fun removeGlobalLayoutObserver() {
+        moviesListRecyclerView.viewTreeObserver.removeOnGlobalLayoutListener(
+            recyclerOnGlobalLayoutListener
+        )
+        recyclerOnGlobalLayoutListener = null
     }
 
     private fun connectionObserver(state: Boolean) {
@@ -226,29 +246,18 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                 if (pageToLoad <= totalPages) {
                     viewModel.loadMore(endpoint, pageToLoad)
                 } else {
-                    Toast.makeText(this.context, "No more pages to load!", Toast.LENGTH_SHORT)
+                    Toast.makeText(this.context, requireContext().getString(R.string.no_more_to_load), Toast.LENGTH_SHORT)
                         .show()
                 }
             } else if (offlineWarning.visibility == View.VISIBLE) {
-                Toast.makeText(this.context, "No connection!", Toast.LENGTH_SHORT)
+                Toast.makeText(this.context, requireContext().getString(R.string.no_connection), Toast.LENGTH_SHORT)
                     .show()
             }
         }
         if (endpoint != FAVOURITE) {
             moviesListRecyclerView.addOnScrollListener(listener)
         }
-//        addScrollingListener()
-
     }
-
-//    private fun addScrollingListener() {
-//        val listener = SimpleScrollListener {
-//            viewModel.informOuterFragmentAboutScrolling(it)
-//        }
-//        if (endpoint != FAVOURITE) {
-//            moviesListRecyclerView.addOnScrollListener(listener)
-//        }
-//    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -288,6 +297,7 @@ class MoviesListFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
         const val ENDPOINT = "EndPoint"
         const val FAVOURITE = "favourite"
+        const val MOVIESLIST = "MoviesList"
 
     }
 }

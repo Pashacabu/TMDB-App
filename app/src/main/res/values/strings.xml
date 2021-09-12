@@ -4,9 +4,15 @@
     <string name="storylineHeader">Storyline</string>
     <string name="budget">Budget: $ %s </string>
     <string name="revenue">Revenue: $ %s</string>
+    <string name="release_date">Release date: %s</string>
+    <string name="runtime">Runtime: %s</string>
     <string name="cast">Cast</string>
     <string name="crew">Crew</string>
     <string name="moviesList">Movies List</string>
+
+    <string name="no_data">No data</string>
+    <string name="no_connection">No connection!</string>
+    <string name="no_more_to_load">No more to load!</string>
 
     <string name="biography">Biography:</string>
     <string name="birthday">Birthday:</string>
@@ -61,10 +67,10 @@
     <string name="channelID">New movie notification</string>
     <string name="channelName">New movies</string>
     <string name="baseImageURL">https://image.tmdb.org/t/p/w780</string>
-    <string name="deepLinkBaseURL">com.pashcabu.hw2://movie/</string>
+    <string name="deepLinkBaseURL">com.pashacabu.hw2://movie/</string>
     <string name="notificationTitle_highestRating">Movie with the Highest rating now:</string>
     <string name="notificationTitle_new">New movie!</string>
-    <string name="searchHint">Input your search query here.</string>
+    <string name="searchHint">Input movie you\'re looking for.</string>
     <string name="place_of_birth">Place of birth:</string>
 
 

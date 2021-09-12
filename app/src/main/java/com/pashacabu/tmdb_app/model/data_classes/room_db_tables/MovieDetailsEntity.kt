@@ -19,7 +19,7 @@ data class DBMovieDetails(
     @ColumnInfo(name = "backdrop")
     var backdropPath: String? = null,
     @ColumnInfo(name = "revenue")
-    var revenue: Int? = null,
+    var revenue: Long? = null,
     @ColumnInfo(name = "genreName")
     var genreName: String? = null,
     @ColumnInfo(name = "genreID")

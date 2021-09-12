@@ -4,27 +4,30 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.pashacabu.tmdb_app.R
+import com.pashacabu.tmdb_app.views.utils.GoBackInterface
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 
-class MainActivity : AppCompatActivity(), MovieDetailsFragment.GoBackClickListener,
-    SearchFragment.GoBack {
+@AndroidEntryPoint
+class MainActivity : AppCompatActivity(), GoBackInterface {
 
+    private var viewPagerFragment = ViewPagerFragment()
 
-    private var fragmentMoviesList = ViewPagerFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .add(R.id.fragment_container, fragmentMoviesList, LIST_FRAGMENT_TAG)
+                .replace(R.id.fragment_container, viewPagerFragment, VIEW_PAGER_TAG)
                 .commit()
             handleIntent(intent)
         } else {
-            fragmentMoviesList =
-                supportFragmentManager.findFragmentByTag(LIST_FRAGMENT_TAG) as ViewPagerFragment
+            viewPagerFragment =
+                supportFragmentManager.findFragmentByTag(VIEW_PAGER_TAG) as ViewPagerFragment
         }
-
 
     }
 
@@ -34,7 +37,7 @@ class MainActivity : AppCompatActivity(), MovieDetailsFragment.GoBackClickListen
                 val id = intent.data?.lastPathSegment?.toIntOrNull()
                 if (id != null) {
                     supportFragmentManager.beginTransaction()
-                        .add(R.id.fragment_container, MovieDetailsFragment.newInstance(id))
+                        .replace(R.id.fragment_container, MovieDetailsFragment.newInstance(id))
                         .addToBackStack("Details")
                         .commit()
                 }
@@ -51,10 +54,10 @@ class MainActivity : AppCompatActivity(), MovieDetailsFragment.GoBackClickListen
 
 
     companion object {
-        private const val LIST_FRAGMENT_TAG = "MoviesList"
+        const val VIEW_PAGER_TAG = "ViewPager"
     }
 
-    override fun onBackArrowPressed() {
+    override fun goBack() {
         super.onBackPressed()
     }
 

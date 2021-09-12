@@ -16,8 +16,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.pashacabu.tmdb_app.R
 import com.pashacabu.tmdb_app.model.data_classes.networkResponses.Movie
+import dagger.Provides
+import javax.inject.Inject
 
-class MoviesListAdapter(private val listener: MoviesListAdapterInterface) :
+
+class MoviesListAdapter (private val listener: MoviesListAdapterInterface) :
     ListAdapter<Movie, MoviesListViewHolder>(MoviesListDiffCallback()) {
 
     private var animation: Int? = null
@@ -122,6 +125,8 @@ class BottomOfTheListListener(private val callback: () -> Unit) : RecyclerView.O
             callback()
         }
     }
+
+
 }
 
 class SimpleScrollListener(private val callback: (scrolling: Boolean) -> Unit) :

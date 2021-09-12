@@ -1,5 +1,7 @@
 package com.pashacabu.tmdb_app.model.data_classes
 
+import javax.inject.Inject
+
 data class SpinnerSorting(
 
     var text: String,
@@ -9,7 +11,7 @@ data class SpinnerSorting(
 )
 
 
-class SortingsList() {
+class SortingsList {
 
     private val list = listOf(
         SpinnerSorting("$POPULARITY $DES_TEXT", DESCEND, POP_Q_DW),

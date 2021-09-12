@@ -19,13 +19,22 @@ import com.pashacabu.tmdb_app.model.data_classes.networkResponses.Movie
 import com.pashacabu.tmdb_app.view_model.*
 import com.pashacabu.tmdb_app.views.MainActivity
 import kotlinx.coroutines.*
+import javax.inject.Inject
 
 class MyWorker(val context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
-    private val db = Database.createDB(context)
-    private val network = NetworkModule().apiService
-    private val converter = com.pashacabu.tmdb_app.model.ClassConverter()
-    private val dbHandler = DBHandler(db)
+    //    private val db = Database.createDB(context)
+    @Inject
+    lateinit var network: NetworkModule.TMDBInterface
+
+    //    private val network = NetworkModule().apiService
+    @Inject
+    lateinit var converter : ClassConverter
+
+    @Inject
+    lateinit var dbHandler: DBHandler
+
+    //    private val dbHandler = DBHandler(db)
     private val array = arrayOf(NOW_PLAYING, POPULAR, TOP_RATED, UPCOMING)
     private lateinit var difference: MutableList<Movie>
 
@@ -133,10 +142,7 @@ class MyWorker(val context: Context, workerParams: WorkerParameters) :
                         mapOfGenres
                     )
                 }
-            val listOfFavourite =
-                converter.entityItemsListToMovieList(
-                    db.movieDAO().getListOfFavourite()
-                )
+            val listOfFavourite = dbHandler.getListOfFavourite()
             newListWithGenres?.forEach { checkIfInFavourite(it, listOfFavourite) }
             val currentListOfMovies = dbHandler.loadMoviesListFromDB(endpoint) ?: listOf()
             if (endpoint == NOW_PLAYING) {

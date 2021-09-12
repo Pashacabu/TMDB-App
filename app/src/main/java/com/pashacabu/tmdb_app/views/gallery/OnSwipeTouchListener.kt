@@ -1,5 +1,6 @@
 package com.pashacabu.tmdb_app.views.gallery
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -10,6 +11,8 @@ class OnSwipeTouchListener(context: Context, private val swipeInterface: SwipeIn
     View.OnTouchListener {
 
     private val gestureDetector = GestureDetector(context, GestureListener())
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
         return gestureDetector.onTouchEvent(event)
     }
